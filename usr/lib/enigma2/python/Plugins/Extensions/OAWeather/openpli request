@@ -1,0 +1,9 @@
+cd /usr/lib/enigma2/python
+
+opkg update
+opkg install python-pip
+pip install requests
+
+prüfen ob ok
+python
+import requests

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+echo "                                  "
+echo "       is now being removed...    "
+echo "                                  "
+echo ""
+echo ""
+echo ""
+echo " removed! You should restart GUI now!"
+echo ""
+exit 0

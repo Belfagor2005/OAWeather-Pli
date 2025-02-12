@@ -1,0 +1,11 @@
+Package: enigma2-plugin-extensions-oaweather
+Version: 3.1
+Section: base
+Priority: optional
+Architecture: all
+Maintainer: mod by kitte888 for py2
+Description: Weather component
+Recommends: python-requests
+Source: *
+Homepage: https:\\www.opena.tv
+OE: enigma2
