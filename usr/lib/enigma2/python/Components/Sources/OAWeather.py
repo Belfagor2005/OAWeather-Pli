@@ -103,9 +103,10 @@ class OAWeather(Source):
 
 	def getWindSpeed(self):
 		windSpeed, windunit = self.getCurrentVal("windSpeed"), self.getVal("windunit")
+		"""
 		# if windunit == "km/h" and config.plugins.OAWeather.windspeedMetricUnit.value == "m/s":
 			# windSpeed, windunit = str(round(int(windSpeed) / 3.6, 1)), "m/s"
-		# return "%s %s" % (windSpeed, windunit)
+		"""
 		if hasattr(config.plugins.OAWeather, 'windspeedMetricUnit') and config.plugins.OAWeather.windspeedMetricUnit.value == "m/s":
 			windSpeed, windunit = str(round(int(windSpeed) / 3.6, 1)), "m/s"
 		return "%s %s" % (windSpeed, windunit)
