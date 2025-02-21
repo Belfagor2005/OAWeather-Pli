@@ -26,6 +26,6 @@ do_compile() {
 
 do_install() {
 	install -d ${D}/usr
-	cp -r --preserve=mode,links ${S}/usr/* ${D}/usr/
+	cp -af --no-preserve=ownership --preserve=mode,links ${S}/usr/* ${D}/usr/
 	chmod -R a+rX ${D}/usr
 }
