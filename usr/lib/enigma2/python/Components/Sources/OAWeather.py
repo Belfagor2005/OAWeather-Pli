@@ -102,12 +102,9 @@ class OAWeather(Source):
 		return "%s%s %s" % (text, self.getCurrentVal("humidity"), "%")
 
 	def getWindSpeed(self):
+		return "%s %s" % (self.getCurrentVal("windSpeed"), self.getVal("windunit"))
 		windSpeed, windunit = self.getCurrentVal("windSpeed"), self.getVal("windunit")
-		"""
-		# if windunit == "km/h" and config.plugins.OAWeather.windspeedMetricUnit.value == "m/s":
-			# windSpeed, windunit = str(round(int(windSpeed) / 3.6, 1)), "m/s"
-		"""
-		if hasattr(config.plugins.OAWeather, 'windspeedMetricUnit') and config.plugins.OAWeather.windspeedMetricUnit.value == "m/s":
+		if windunit == "km/h" and config.plugins.OAWeather.windspeedMetricUnit.value == "m/s":
 			windSpeed, windunit = str(round(int(windSpeed) / 3.6, 1)), "m/s"
 		return "%s %s" % (windSpeed, windunit)
 
