@@ -187,10 +187,16 @@ class WeatherSettingsView(Setup):
 		Setup.__init__(self, session, "WeatherSettings", plugin="Extensions/OAWeather", PluginLanguageDomain="OAWeather")
 		self["key_blue"] = StaticText(_("Manage favorites"))
 		self["key_yellow"] = StaticText(_("Defaults"))
-		self["blueActions"] = HelpableActionMap(self, ["ColorActions"], {
-			"yellow": (self.keyYellow, _("Set default values")),
-			"blue": (self.keyBlue, _("Search for your city")),
-			}, prio=0, description=_("Weather Settings Actions"))
+		self["blueActions"] = HelpableActionMap(
+			self,
+			["ColorActions"],
+			{
+				"yellow": (self.keyYellow, _("Set default values")),
+				"blue": (self.keyBlue, _("Search for your city"))
+			},
+			prio=0,
+			description=_("Weather Settings Actions")
+		)
 		self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
 		self.old_weatherlocation = config.plugins.OAWeather.weatherlocation.value
 
@@ -276,14 +282,20 @@ class WeatherSettingsViewNew(ConfigListScreen, Screen):
 		self["key_blue"] = StaticText()
 		self["key_yellow"] = StaticText(_("Defaults"))
 		self["key_red"] = StaticText(_("Location Selection"))
-		self["blueActions"] = HelpableActionMap(self, ['ColorActions', 'OkCancelActions', 'OAWeatherActions'],
-												{"ok": self.keyOK,
-												 'left': self.keyLeft,
-												 'right': self.keyRight,
-												 "cancel": self.close,
-												 "green": self.keySave,
-												 "red": self.keycheckCity,
-												 "yellow": self.defaults}, -1)
+		self["blueActions"] = HelpableActionMap(
+			self,
+			["ColorActions", "OkCancelActions", "OAWeatherActions"],
+			{
+				"ok": self.keyOK,
+				"left": self.keyLeft,
+				"right": self.keyRight,
+				"cancel": self.close,
+				"green": self.keySave,
+				"red": self.keycheckCity,
+				"yellow": self.defaults
+			},
+			-1
+		)
 		# prio=0, description=_("Weather Settings Actions"))
 		self.createSetup()
 
@@ -377,7 +389,7 @@ class WeatherSettingsViewNew(ConfigListScreen, Screen):
 							print("[WeatherSettingsViewNew] Error in module 'showMenu': faulty entry in resultlist.")
 
 					# --------------------- hier ist der alte aufruf der choicebox
-					# self.session.openWithCallback(self.choiceIdxCallback, ChoiceBox, titlebartext=_("Select Your Location"), title="", list=tuple(self.citylist))
+					# self.session.openWithCallback(self.returnCityChoice, ChoiceBox, title=_("Select your location"), list=tuple(answer[1]))
 					self.citylisttest = self.citylist
 					self.testScreen = self.session.open(TestScreen, citylisttest=self.citylisttest, okCallback=self.testScreenOkCallback)
 					# selected_city_str = self.selected_city
@@ -494,13 +506,17 @@ class TestScreen(Screen):
 		self['meinelist'] = MenuList(citylisttest)
 		self.status = ""
 		self["status"] = Label()
-		self['actions'] = ActionMap(['OkCancelActions', 'ColorActions'],
-									{'ok': self.selectCity,
-									 'cancel': self.close,
-									 'red': self.close,
-									 'green': self.close,
-									 'yellow': self.close}, -1)
-
+		self["actions"] = ActionMap(
+			["OkCancelActions", "ColorActions"],
+			{
+				"ok": self.selectCity,
+				"cancel": self.close,
+				"red": self.close,
+				"green": self.close,
+				"yellow": self.close
+			},
+			-1
+		)
 		self['key_red'] = Label(_('exit'))
 		self['status'].setText(_("Select the City and Press Ok"))
 
@@ -764,18 +780,20 @@ class OAWeatherPlugin(Screen):
 		self["key_blue"] = StaticText(_("Next favorite"))
 		self["key_ok"] = StaticText(_("View details"))
 		self["key_menu"] = StaticText(_("Settings"))
-		self["actions"] = ActionMap(["OAWeatherActions",
-									"ColorActions",
-									"InfoActions"], {
-													"ok": self.keyOk,
-													"cancel": self.close,
-													"red": self.close,
-													"yellow": self.favoriteUp,
-													"blue": self.favoriteDown,
-													"green": self.favoriteChoice,
-													"menu": self.config,
-													"info": self.keyOk
-													}, -1)
+		self["actions"] = ActionMap(
+			["OAWeatherActions", "ColorActions", "InfoActions"],
+			{
+				"ok": self.keyOk,
+				"cancel": self.close,
+				"red": self.close,
+				"yellow": self.favoriteUp,
+				"blue": self.favoriteDown,
+				"green": self.favoriteChoice,
+				"menu": self.config,
+				"info": self.keyOk
+			},
+			-1
+		)
 		for i in range(1, 6):
 			self["weekday%s_temp" % i] = StaticText()
 
@@ -833,32 +851,6 @@ class OAWeatherPlugin(Screen):
 			text = item.get("text")
 			self["weekday%s_temp" % day].text = "%s %s|%s %s\n%s" % (highTemp, tempunit, lowTemp, tempunit, text)
 
-	# def clearFields(self):
-		# for idx in range(1, 6):
-			# self[f"weekday{idx}_temp"].text = ""
-
-	# def getVal(self, key: str):
-		# return self.data.get(key, self.na) if self.data else self.na
-
-	# def getCurrentVal(self, key: str, default: str = _("n/a")):
-		# value = default
-		# if self.data and "current" in self.data:
-			# current = self.data.get("current", {})
-			# if key in current:
-				# value = current.get(key, default)
-		# return value
-
-	# def getWeatherDataCallback(self):
-		# self["statustext"].text = ""
-		# forecast = self.data.get("forecast", {})
-		# tempunit = self.data.get("tempunit", self.na)
-		# for day in range(1, 6):
-			# item = forecast.get(day, {})
-			# lowTemp = item.get("minTemp", "")
-			# highTemp = item.get("maxTemp", "")
-			# text = item.get("text", "")
-			# self[f"weekday{day}_temp"].text = "%s %s|%s %s\n%s" % (highTemp, tempunit, lowTemp, tempunit, text)
-
 	def keyOk(self):
 		if weatherhelper.favoriteList and weatherhandler.WI.getDataReady():
 			self.session.open(OAWeatherDetailview, weatherhelper.favoriteList[self.currFavIdx])
@@ -875,7 +867,7 @@ class OAWeatherPlugin(Screen):
 
 	def favoriteChoice(self):
 		choiceList = [(item[0], item) for item in weatherhelper.favoriteList]
-		self.session.openWithCallback(self.returnFavoriteChoice, ChoiceBox, titlebartext=_("Select desired location"), title="", list=choiceList)
+		self.session.openWithCallback(self.returnFavoriteChoice, ChoiceBox, title=_("Select desired location"), list=choiceList)
 
 	def returnFavoriteChoice(self, favorite):
 		if favorite is not None:
@@ -897,8 +889,10 @@ class OAWeatherDetailFrame(Screen):
 	def __init__(self, session):
 		self.skin = weatherhelper.loadSkin("OAWeatherDetailFrame")
 		Screen.__init__(self, session)
-		self.widgets = ("time", "pressure", "temp", "feels", "humid", "precip", "windspeed",
-							"winddir", "windgusts", "uvindex", "visibility", "shortdesc", "longdesc")
+		self.widgets = (
+			"time", "pressure", "temp", "feels", "humid", "precip", "windspeed",
+			"winddir", "windgusts", "uvindex", "visibility", "shortdesc", "longdesc"
+		)
 		for widget in self.widgets:
 			self[widget] = StaticText()
 		self["icon"] = Pixmap()
@@ -920,9 +914,9 @@ class OAWeatherDetailFrame(Screen):
 
 class OAWeatherDetailview(Screen):
 	YAHOOnightswitch = {
-					"3": "47", "4": "47", "11": "45", "12": "45", "13": "46", "14": "46", "15": "46", "16": "46", "28": "27",
-					"30": "29", "32": "31", "34": "33", "37": "47", "38": "47", "40": "45", "41": "46", "42": "46", "43": "46"
-					}
+		"3": "47", "4": "47", "11": "45", "12": "45", "13": "46", "14": "46", "15": "46", "16": "46", "28": "27",
+		"30": "29", "32": "31", "34": "33", "37": "47", "38": "47", "40": "45", "41": "46", "42": "46", "43": "46"
+	}
 	YAHOOdayswitch = {"27": "28", "29": "30", "31": "32", "33": "34", "45": "39", "46": "16", "47": "4"}
 
 	def __init__(self, session, currlocation):
@@ -939,8 +933,8 @@ class OAWeatherDetailview(Screen):
 		choices = config.plugins.OAWeather.detailLevel.choices
 		self.detailLevelIdx = next(
 			(i for i, entry in enumerate(choices)
-			 if isinstance(entry, (tuple, list)) and len(entry) == 2 and entry[0] == current_value),
-			0  # fallback index se non trovato
+				if isinstance(entry, (tuple, list)) and len(entry) == 2 and entry[0] == current_value),
+			0  # fallback index if not found
 		)
 		self.currdatehour = datetime.today().replace(minute=0, second=0, microsecond=0)
 		self.currdaydelta = 0
@@ -967,24 +961,26 @@ class OAWeatherDetailview(Screen):
 		self["key_channel"] = StaticText(_("Day +/-"))
 		self["key_info"] = StaticText(_("Details +/-"))
 		self["key_ok"] = StaticText(_("Glass"))
-		self["actions"] = ActionMap(["OAWeatherActions",
-									"ColorActions",
-									"InfoActions"], {
-													"ok": self.toggleDetailframe,
-													"cancel": self.exit,
-													"up": self.prevEntry,
-													"down": self.nextEntry,
-													"right": self.pageDown,
-													"left": self.pageUp,
-													"red": self.exit,
-													"yellow": self.favoriteUp,
-													"blue": self.favoriteDown,
-													"green": self.favoriteChoice,
-													"channeldown": self.prevDay,
-													"channelup": self.nextDay,
-													"info": self.toggleDetailLevel,
-													"menu": self.config
-													}, -1)
+		self["actions"] = ActionMap(
+			["OAWeatherActions", "ColorActions", "InfoActions"],
+			{
+				"ok": self.toggleDetailframe,
+				"cancel": self.exit,
+				"up": self.prevEntry,
+				"down": self.nextEntry,
+				"right": self.pageDown,
+				"left": self.pageUp,
+				"red": self.exit,
+				"yellow": self.favoriteUp,
+				"blue": self.favoriteDown,
+				"green": self.favoriteChoice,
+				"channeldown": self.prevDay,
+				"channelup": self.nextDay,
+				"info": self.toggleDetailLevel,
+				"menu": self.config
+			},
+			-1
+		)
 		self["statustext"] = StaticText()
 		self.pressPix = self.getPixmap("barometer.png")
 		self.tempPix = self.getPixmap("temp.png")
@@ -1317,7 +1313,7 @@ class OAWeatherDetailview(Screen):
 
 	def favoriteChoice(self):
 		choiceList = [(item[0], item) for item in weatherhelper.favoriteList]
-		self.session.openWithCallback(self.returnFavoriteChoice, ChoiceBox, titlebartext=_("Select desired location"), title="", list=choiceList)
+		self.session.openWithCallback(self.returnFavoriteChoice, ChoiceBox, title=_("Select desired location"), list=choiceList)
 
 	def returnFavoriteChoice(self, favorite):
 		if favorite is not None:
@@ -1361,8 +1357,8 @@ class OAWeatherDetailview(Screen):
 		choices = config.plugins.OAWeather.detailLevel.choices
 		self.detailLevelIdx = next(
 			(i for i, entry in enumerate(choices)
-			 if isinstance(entry, (tuple, list)) and len(entry) == 2 and entry[0] == current_value),
-			0  # fallback index se non trovato
+				if isinstance(entry, (tuple, list)) and len(entry) == 2 and entry[0] == current_value),
+			0  # fallback index if not found
 		)
 		if self.detailFrameActive:
 			self.detailFrame.showFrame()
@@ -1396,13 +1392,18 @@ class OAWeatherFavorites(Screen):
 		self["key_green"] = StaticText(_("Save"))
 		self["key_yellow"] = StaticText(_("Edit"))
 		self["key_blue"] = StaticText(_("Add"))
-		self['actions'] = ActionMap(["OkCancelActions",
-									"ColorActions"], {"ok": self.keyOk,
-													"red": self.keyRed,
-													"green": self.keyGreen,
-													"yellow": self.keyYellow,
-													"blue": self.keyBlue,
-													"cancel": self.keyExit}, -1)
+		self["actions"] = ActionMap(
+			["OkCancelActions", "ColorActions"],
+			{
+				"ok": self.keyOk,
+				"red": self.keyRed,
+				"green": self.keyGreen,
+				"yellow": self.keyYellow,
+				"blue": self.keyBlue,
+				"cancel": self.keyExit
+			},
+			-1
+		)
 		self.onShown.append(self.onShownFinished)
 
 	def onShownFinished(self):
@@ -1448,7 +1449,8 @@ class OAWeatherFavorites(Screen):
 	def cityChoice(self, answer):
 		if answer[0] is True:
 			self.searchcity = ""
-			self.session.openWithCallback(self.returnCityChoice, ChoiceBox, titlebartext=_("Select your location"), title="", list=tuple(answer[1]))
+			self.session.openWithCallback(self.returnCityChoice, ChoiceBox, title=_("Select your location"), list=tuple(answer[1]))
+
 		elif answer[0] is False:
 			self.session.open(MessageBox, text=answer[2], type=MessageBox.TYPE_WARNING, timeout=3)
 			self.session.openWithCallback(self.returnCityname, VirtualKeyBoard, title=_("Weather cityname (at least 3 letters):"), text=self.searchcity)
