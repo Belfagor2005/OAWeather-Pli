@@ -2,159 +2,183 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OAWeather\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-15 16:34+0100\n"
-"PO-Revision-Date: 2023-05-09 00:22+0200\n"
+"POT-Creation-Date: 2025-04-30 14:44+0200\n"
+"PO-Revision-Date: 2025-04-30 14:44+0200\n"
 "Last-Translator: Madhouse <anonm4d@gmail.com>\n"
-"Language-Team: Italian <https://hosted.weblate.org/projects/openatv/metrixhd/it/>\n"
+"Language-Team: Italian <https://hosted.weblate.org/projects/openatv/metrixhd/"
+"it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.5\n"
 "X-SourceCharset: UTF-8\n"
+"X-Poedit-Basepath: ../../..\n"
+"X-Poedit-SearchPath-0: plugin.py\n"
 
-#, python-format
-msgid "%d Minutes"
-msgstr "%d Minuti"
-
-msgid "Cache data"
-msgstr "Dati nella cache"
-
-msgid "Celsius"
-msgstr "Celsius"
-
-msgid "Choose the icon set. You need to create an additional set here: /usr/share/enigma2/WeatherIconSets/NAME."
-msgstr "Scegli il set di icone. Devi creare un set aggiuntivo in: /usr/share/enigma2/WeatherIconSets/NAME."
-
-msgid "Choose whether the 'night switch' should be activated or not. Some icons are then displayed as night icons with moon."
-msgstr "Scegli se attivare o meno la modalità 'notturno'. Alcune icone vengono quindi visualizzate come icone notturne con la luna."
-
-#, python-format
-msgid "City '%s' not found! Please try another wording."
-msgstr "Città '%s' non trovata! Si prega di provare un'altra formulazione."
-
-msgid "Current Weather"
-msgstr "Meteo corrente"
-
+#: plugin.py:148
 #, fuzzy
 msgid "Default"
 msgstr "Predefinito"
 
-msgid "Defaults"
-msgstr "Predefinito"
-
+#: plugin.py:165
 msgid "Disabled"
 msgstr "Disabilitato"
 
-msgid "East"
-msgstr "Est"
+#: plugin.py:165
+#, python-format
+msgid "%d Minutes"
+msgstr "%d Minuti"
 
-msgid "Enable Debug"
-msgstr "Abilita debug"
+#: plugin.py:176
+msgid "More Details / Smaller font"
+msgstr ""
 
-msgid "Enabled"
-msgstr "Abilita"
+#: plugin.py:176
+msgid "Less details / Larger font"
+msgstr ""
 
-msgid "Enter a personalized API key for use with OpenWeatherMap (https://openweathermap.org/)."
-msgstr "Inserisci una chiave API personalizzata da utilizzare con OpenWeatherMap (https://openweathermap.org/)."
+#: plugin.py:177
+msgid "Celsius"
+msgstr "Celsius"
 
-msgid "Enter the location for your weather forecasts."
-msgstr "Inserisci la posizione per le tue previsioni del tempo."
-
-msgid "Error getting City ID"
-msgstr "Errore durante l'ottenimento dell'ID città"
-
-msgid "Error in Weatherinfo"
-msgstr "Errore nelle Informazioni meteo"
-
+#: plugin.py:177
 msgid "Fahrenheit"
 msgstr "Fahrenheit"
 
-msgid "Feels like"
-msgstr "Percepita"
+#: plugin.py:178
+msgid "km/h"
+msgstr ""
 
-msgid "Humidity"
-msgstr "Umidità"
+#: plugin.py:178
+msgid "m/s"
+msgstr ""
 
-msgid "Location Selection"
-msgstr "Seleziona posizione"
-
+#: plugin.py:180
 msgid "MSN weather"
 msgstr "Meteo MSN"
 
-msgid "Metric unit for wind speed"
-msgstr ""
-
-msgid "North"
-msgstr "Nord"
-
-msgid "Northeast"
-msgstr "Nord Est"
-
-msgid "Northwest"
-msgstr "Nord Ovest"
-
+#: plugin.py:180
 msgid "Open-Meteo Wetter"
 msgstr "Open-Meteo"
 
+#: plugin.py:180
 msgid "OpenWeatherMap"
 msgstr "OpenWeatherMap"
 
-msgid "Precipitation"
-msgstr "Precipitazioni"
-
-msgid "Refresh interval"
-msgstr "Intervallo aggiornamento"
-
-msgid "Search for City ID please wait..."
-msgstr "Ricerca ID città, per favore attendi..."
-
-msgid "Search for your City"
-msgstr "Cerca la tua città"
-
-msgid "Select 'Yes' to enable add debug output to log."
-msgstr "Seleziona 'Si' per abilitare il debug nel file log."
-
-msgid "Select 'Yes' to enable the addition of Weather."
-msgstr "Seleziona 'Si' per abilitare l'aggiunta del Meteo."
-
-msgid "Select Your Location"
-msgstr "Seleziona la tua località"
-
-msgid "Select the metric unit for wind speed to be used for wind displays. This has no effect on the imperial unit 'mph'."
+#: plugin.py:188
+msgid "Manage favorites"
 msgstr ""
 
-msgid "Select the preferred weather service to supply the weather information."
-msgstr "Seleziona il servizio meteo preferito per fornire le informazioni meteo."
+#: plugin.py:189 plugin.py:277
+msgid "Defaults"
+msgstr "Predefinito"
 
-msgid "Select the temperature unit to be used for temperature displays."
-msgstr "Seleziona l'unità di temperatura da utilizzare per la visualizzazione della temperatura."
-
-msgid "Select this option to save that last obtained weather data locally. This is used to initialize the data immediately after restart while updated data is being fetched."
-msgstr "Seleziona per salvare localmente gli ultimi dati meteorologici ottenuti. Viene utilizzato per inizializzare i dati immediatamente dopo il riavvio durante il recupero dei dati aggiornati."
-
+#: plugin.py:191
 msgid "Set default values"
 msgstr "Imposta i valori predefiniti"
 
-msgid "Show Weather Forecast"
-msgstr "Mostra le previsioni Meteo"
+#: plugin.py:192
+#, fuzzy
+#| msgid "Search for your City"
+msgid "Search for your city"
+msgstr "Cerca la tua città"
 
-msgid "South"
-msgstr "Sud"
+#: plugin.py:193
+msgid "Weather Settings Actions"
+msgstr "Azioni impostazioni meteo"
 
-msgid "Southeast"
-msgstr "Sud Est"
+#: plugin.py:211
+msgid ""
+"The city name is too short. More than 2 characters are needed for search."
+msgstr ""
+"Il nome della città è troppo corto. Sono necessari più di 2 caratteri per la "
+"ricerca."
 
-msgid "Southwest"
-msgstr "Sud Ovest"
+#: plugin.py:265
+msgid "Setup"
+msgstr ""
 
-msgid "Specify how often Weather retrieves its data from the server. 'Once' means the data will loaded only once after a GUI or system start."
-msgstr "Specifica la frequenza con cui il meteo recupera i suoi dati dal server. 'Una volta' significa che i dati verranno caricati solo una volta dopo l'avvio della GUI o del sistema."
+#: plugin.py:275 plugin.py:1396
+msgid "Save"
+msgstr ""
 
-msgid "Temperature unit"
+#: plugin.py:278
+msgid "Location Selection"
+msgstr "Seleziona posizione"
+
+#: plugin.py:298 plugin.py:458
+#, fuzzy
+#| msgid "Enabled"
+msgid "Enabled :"
+msgstr "Abilita"
+
+#: plugin.py:300 plugin.py:460
+#, fuzzy
+#| msgid "Weather service"
+msgid "Weather service :"
+msgstr "Servizio Meteo"
+
+#: plugin.py:301 plugin.py:317 plugin.py:461
+#, fuzzy
+#| msgid "Weather city name"
+msgid "Weather city name :"
+msgstr "Nome città"
+
+#: plugin.py:302 plugin.py:322 plugin.py:462
+#, fuzzy
+#| msgid "Weather API key"
+msgid "Weather API key :"
+msgstr "Chiave API Meteo"
+
+#: plugin.py:303 plugin.py:463
+#, fuzzy
+#| msgid "Temperature unit"
+msgid "Temperature unit :"
 msgstr "Unità temperatura"
 
+#: plugin.py:304
+msgid "Wind speed metric unit:"
+msgstr ""
+
+#: plugin.py:305 plugin.py:464
+#, fuzzy
+#| msgid "Weather icon set"
+msgid "Weather icon set :"
+msgstr "Percorso icone"
+
+#: plugin.py:306 plugin.py:465
+#, fuzzy
+#| msgid "Weather icon night switch"
+msgid "Weather icon night switch :"
+msgstr "Attiva le icone notturne"
+
+#: plugin.py:307 plugin.py:466
+#, fuzzy
+#| msgid "Refresh interval"
+msgid "Refresh interval :"
+msgstr "Intervallo aggiornamento"
+
+#: plugin.py:308 plugin.py:467
+#, fuzzy
+#| msgid "Cache data"
+msgid "Cache data :"
+msgstr "Dati nella cache"
+
+#: plugin.py:309 plugin.py:468
+#, fuzzy
+#| msgid "Enable Debug"
+msgid "Enable Debug :"
+msgstr "Abilita debug"
+
+#: plugin.py:319 plugin.py:326
+#, fuzzy
+#| msgid "Weather city name"
+msgid "Please enter a valid city name."
+msgstr "Nome città"
+
+#: plugin.py:347 plugin.py:1428
 msgid ""
 "The API key for OpenWeatherMap is not defined or invalid.\n"
 "Please verify your input data.\n"
@@ -164,47 +188,266 @@ msgstr ""
 "Si prega di verificare i dati inseriti.\n"
 "In caso contrario, le tue impostazioni non verranno salvate."
 
-msgid "The city name is too short. More than 2 characters are needed for search."
-msgstr "Il nome della città è troppo corto. Sono necessari più di 2 caratteri per la ricerca."
+#: plugin.py:364 plugin.py:1438
+#, python-format
+msgid "City '%s' not found! Please try another wording."
+msgstr "Città '%s' non trovata! Si prega di provare un'altra formulazione."
 
-msgid "Today"
-msgstr "Oggi"
+#: plugin.py:470
+msgid "Standard fertig"
+msgstr ""
 
-msgid "Update"
-msgstr "Aggiornato"
+#: plugin.py:504
+msgid "exit"
+msgstr ""
 
-msgid "Weather API key"
-msgstr "Chiave API Meteo"
+#: plugin.py:505
+msgid "Select the City and Press Ok"
+msgstr ""
 
-msgid "Weather Plugin"
-msgstr "Weather Plugin"
+#: plugin.py:538
+msgid "North"
+msgstr "Nord"
 
-msgid "Weather Settings Actions"
-msgstr "Azioni impostazioni meteo"
+#: plugin.py:538
+msgid "Northeast"
+msgstr "Nord Est"
 
-msgid "Weather city name"
-msgstr "Nome città"
+#: plugin.py:538
+msgid "East"
+msgstr "Est"
 
-msgid "Weather icon night switch"
-msgstr "Attiva le icone notturne"
+#: plugin.py:538
+msgid "Southeast"
+msgstr "Sud Est"
 
-msgid "Weather icon set"
-msgstr "Percorso icone"
+#: plugin.py:538
+msgid "South"
+msgstr "Sud"
 
-msgid "Weather service"
-msgstr "Servizio Meteo"
+#: plugin.py:538
+msgid "Southwest"
+msgstr "Sud Ovest"
 
-msgid "Weather settings"
-msgstr "Configurazioni meteo"
-
+#: plugin.py:538
 msgid "West"
 msgstr "Ovest"
 
-msgid "km/h"
-msgstr ""
+#: plugin.py:538
+msgid "Northwest"
+msgstr "Nord Ovest"
 
-msgid "m/s"
-msgstr ""
+#: plugin.py:702
+msgid "Precipitation"
+msgstr "Precipitazioni"
 
+#: plugin.py:703
+msgid "Humidity"
+msgstr "Umidità"
+
+#: plugin.py:704
+msgid "Feels like"
+msgstr "Percepita"
+
+#: plugin.py:718
+msgid "Show Weather Forecast"
+msgstr "Mostra le previsioni Meteo"
+
+#: plugin.py:754 plugin.py:807 plugin.py:817 plugin.py:913 plugin.py:951
 msgid "n/a"
 msgstr ""
+
+#: plugin.py:755
+msgid "Weather Plugin"
+msgstr "Weather Plugin"
+
+#: plugin.py:756
+msgid "Menu"
+msgstr ""
+
+#: plugin.py:758 plugin.py:955
+msgid "Update"
+msgstr "Aggiornato"
+
+#: plugin.py:759
+msgid "Current Weather"
+msgstr "Meteo corrente"
+
+#: plugin.py:760 plugin.py:1016
+msgid "Today"
+msgstr "Oggi"
+
+#: plugin.py:761 plugin.py:963
+msgid "Exit"
+msgstr ""
+
+#: plugin.py:762 plugin.py:964
+msgid "Chose favorite"
+msgstr ""
+
+#: plugin.py:763 plugin.py:965
+msgid "Previous favorite"
+msgstr ""
+
+#: plugin.py:764 plugin.py:966
+msgid "Next favorite"
+msgstr ""
+
+#: plugin.py:765
+msgid "View details"
+msgstr ""
+
+#: plugin.py:766
+msgid "Settings"
+msgstr ""
+
+#: plugin.py:878 plugin.py:1320
+#, fuzzy
+#| msgid "Select Your Location"
+msgid "Select desired location"
+msgstr "Seleziona la tua località"
+
+#: plugin.py:952
+#, fuzzy
+#| msgid "Weather Plugin"
+msgid "Weather Plugin Detailview"
+msgstr "Weather Plugin"
+
+#: plugin.py:967
+msgid "Day +/-"
+msgstr ""
+
+#: plugin.py:968
+msgid "Details +/-"
+msgstr ""
+
+#: plugin.py:969
+msgid "Glass"
+msgstr ""
+
+#: plugin.py:1033
+msgid "No data available."
+msgstr ""
+
+#: plugin.py:1033
+msgid "No data available for this period."
+msgstr ""
+
+#: plugin.py:1394
+msgid "Manage your favorites"
+msgstr ""
+
+#: plugin.py:1395
+msgid "Delete"
+msgstr ""
+
+#: plugin.py:1397
+msgid "Edit"
+msgstr ""
+
+#: plugin.py:1398
+msgid "Add"
+msgstr ""
+
+#: plugin.py:1433
+msgid "Error in Weatherinfo"
+msgstr "Errore nelle Informazioni meteo"
+
+#: plugin.py:1438
+msgid "Error getting City ID"
+msgstr "Errore durante l'ottenimento dell'ID città"
+
+#: plugin.py:1451
+#, fuzzy
+#| msgid "Select Your Location"
+msgid "Select your location"
+msgstr "Seleziona la tua località"
+
+#: plugin.py:1454 plugin.py:1499 plugin.py:1510
+msgid "Weather cityname (at least 3 letters):"
+msgstr ""
+
+#: plugin.py:1484
+#, python-format
+msgid ""
+"Do you really want do delete favorite\n"
+"'%s'?"
+msgstr ""
+
+#: plugin.py:1487
+#, python-format
+msgid ""
+"The favorite '%s' corresponds to the set weather city name and therefore "
+"cannot be deleted."
+msgstr ""
+
+#: plugin.py:1506
+msgid "Favorites have been successfully saved!"
+msgstr ""
+
+#: plugin.py:1523
+msgid "Do you really want do exit without saving your modified favorite list?"
+msgstr ""
+
+#~ msgid ""
+#~ "Choose the icon set. You need to create an additional set here: /usr/"
+#~ "share/enigma2/WeatherIconSets/NAME."
+#~ msgstr ""
+#~ "Scegli il set di icone. Devi creare un set aggiuntivo in: /usr/share/"
+#~ "enigma2/WeatherIconSets/NAME."
+
+#~ msgid ""
+#~ "Choose whether the 'night switch' should be activated or not. Some icons "
+#~ "are then displayed as night icons with moon."
+#~ msgstr ""
+#~ "Scegli se attivare o meno la modalità 'notturno'. Alcune icone vengono "
+#~ "quindi visualizzate come icone notturne con la luna."
+
+#~ msgid ""
+#~ "Enter a personalized API key for use with OpenWeatherMap (https://"
+#~ "openweathermap.org/)."
+#~ msgstr ""
+#~ "Inserisci una chiave API personalizzata da utilizzare con OpenWeatherMap "
+#~ "(https://openweathermap.org/)."
+
+#~ msgid "Enter the location for your weather forecasts."
+#~ msgstr "Inserisci la posizione per le tue previsioni del tempo."
+
+#~ msgid "Search for City ID please wait..."
+#~ msgstr "Ricerca ID città, per favore attendi..."
+
+#~ msgid "Select 'Yes' to enable add debug output to log."
+#~ msgstr "Seleziona 'Si' per abilitare il debug nel file log."
+
+#~ msgid "Select 'Yes' to enable the addition of Weather."
+#~ msgstr "Seleziona 'Si' per abilitare l'aggiunta del Meteo."
+
+#~ msgid ""
+#~ "Select the preferred weather service to supply the weather information."
+#~ msgstr ""
+#~ "Seleziona il servizio meteo preferito per fornire le informazioni meteo."
+
+#~ msgid "Select the temperature unit to be used for temperature displays."
+#~ msgstr ""
+#~ "Seleziona l'unità di temperatura da utilizzare per la visualizzazione "
+#~ "della temperatura."
+
+#~ msgid ""
+#~ "Select this option to save that last obtained weather data locally. This "
+#~ "is used to initialize the data immediately after restart while updated "
+#~ "data is being fetched."
+#~ msgstr ""
+#~ "Seleziona per salvare localmente gli ultimi dati meteorologici ottenuti. "
+#~ "Viene utilizzato per inizializzare i dati immediatamente dopo il riavvio "
+#~ "durante il recupero dei dati aggiornati."
+
+#~ msgid ""
+#~ "Specify how often Weather retrieves its data from the server. 'Once' "
+#~ "means the data will loaded only once after a GUI or system start."
+#~ msgstr ""
+#~ "Specifica la frequenza con cui il meteo recupera i suoi dati dal server. "
+#~ "'Una volta' significa che i dati verranno caricati solo una volta dopo "
+#~ "l'avvio della GUI o del sistema."
+
+#~ msgid "Weather settings"
+#~ msgstr "Configurazioni meteo"

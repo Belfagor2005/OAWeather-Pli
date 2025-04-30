@@ -525,6 +525,7 @@ class WeatherHandler():
 		self.WI = Weatherinfo(mode, config.plugins.OAWeather.apikey.value)
 		# apy_key = config.plugins.OAWeather.apikey.value
 		self.geocode = config.plugins.OAWeather.owm_geocode.value.split(",")
+		self.currLocation = config.plugins.OAWeather.weatherlocation.value
 		self.weathercity = None
 		self.trialcounter = 0
 		self.currentWeatherDataValid = 3  # 0= green (data available), 1= yellow (still working), 2= red (no data available, wait on next refresh) 3=startup
@@ -535,7 +536,6 @@ class WeatherHandler():
 		self.onUpdate = []
 		self.refreshCallback = None
 		self.skydirs = {"N": _("North"), "NE": _("Northeast"), "E": _("East"), "SE": _("Southeast"), "S": _("South"), "SW": _("Southwest"), "W": _("West"), "NW": _("Northwest")}
-		self.msnFullData = None
 
 	def sessionStart(self, session):
 		self.session = session
@@ -552,6 +552,9 @@ class WeatherHandler():
 	def getData(self):
 		# logout(data="WeatherHandler getdata")
 		return self.weatherDict
+
+	def getFulldata(self):
+		return self.fullWeatherDict
 
 	if sys.version_info[0] >= 3:
 		logout(data="Python 3 getValid")
@@ -642,9 +645,9 @@ class WeatherHandler():
 				self.refreshTimer.start(300000, True)
 			return
 		self.writeData(data)
-		self.msnFullData = self.WI.info if config.plugins.OAWeather.weatherservice.value == "MSN" else None
+		self.fullWeatherDict = self.WI.info
 		# TODO write cache only on close
-		if config.plugins.OAWeather.cachedata.value != "0":
+		if config.plugins.OAWeather.cachedata.value and self.currLocation == config.plugins.OAWeather.weatherlocation.value:
 			with open(CACHEFILE, "wb") as fd:
 				dump(data, fd, -1)
 		if self.refreshCallback:
@@ -740,23 +743,17 @@ class OAWeatherPlugin(Screen):
 				break
 		self.skin = skintext
 		Screen.__init__(self, session)
-		self.title = _("Weather Plugin")
-
+		weatherLocation = config.plugins.OAWeather.weatherlocation.value
+		if weatherLocation != weatherhandler.getCurrLocation():
+			weatherhandler.setCurrLocation(weatherLocation)
+			weatherhandler.refreshWeatherData()
 		Neue_keymap = '/usr/lib/enigma2/python/Plugins/Extensions/OAWeather/keymap.xml'
 		readKeymap(Neue_keymap)
+		self.currFavIdx = weatherhelper.favoriteList.index(weatherLocation) if weatherLocation in weatherhelper.favoriteList else 0
 		self.data = {}
 		self.na = _("n/a")
+		self.title = _("Weather Plugin")
 		self["key_blue"] = StaticText(_("Menu"))
-
-		# self["actions"] = ActionMap(
-			# ["SetupActions", "DirectionActions", "ColorActions", "OAWeatherActions"],
-			# {
-				# "green": self.configmenu,
-				# "cancel": self.close,
-				# "menu": self.configmenu,
-			# },
-			# -1
-		# )
 		self["statustext"] = StaticText()
 		self["update"] = Label(_("Update"))
 		self["current"] = Label(_("Current Weather"))
@@ -885,7 +882,7 @@ class OAWeatherPlugin(Screen):
 			callInThread(weatherhandler.reset, favorite[1], self.configFinished)
 
 	def config(self):
-		self.session.openWithCallback(self.configFinished, WeatherSettingsView)
+		self.session.openWithCallback(self.configFinished, WeatherSettingsViewNew)
 
 	def configFinished(self, result=None):
 		self.clearFields()
@@ -935,8 +932,16 @@ class OAWeatherDetailview(Screen):
 		self.detailFrameActive = False
 		self.currFavIdx = weatherhelper.favoriteList.index(currlocation) if currlocation in weatherhelper.favoriteList else 0
 		self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
-		self.detailLevels = config.plugins.OAWeather.detailLevel.getChoices()
-		self.detailLevelIdx = config.plugins.OAWeather.detailLevel.getIndex()
+		# self.detailLevels = config.plugins.OAWeather.detailLevel.getChoices()
+		self.detailLevels = config.plugins.OAWeather.detailLevel.choices
+		# self.detailLevelIdx = config.plugins.OAWeather.detailLevel.getIndex()
+		current_value = config.plugins.OAWeather.detailLevel.value
+		choices = config.plugins.OAWeather.detailLevel.choices
+		self.detailLevelIdx = next(
+			(i for i, entry in enumerate(choices)
+			 if isinstance(entry, (tuple, list)) and len(entry) == 2 and entry[0] == current_value),
+			0  # fallback index se non trovato
+		)
 		self.currdatehour = datetime.today().replace(minute=0, second=0, microsecond=0)
 		self.currdaydelta = 0
 		self.skinList = []
@@ -1348,10 +1353,17 @@ class OAWeatherDetailview(Screen):
 		self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
 		if self.detailFrameActive:
 			self.detailFrame.hideFrame()
-		self.session.openWithCallback(self.configFinished, WeatherSettingsView)
+		self.session.openWithCallback(self.configFinished, WeatherSettingsViewNew)
 
 	def configFinished(self, result=None):
-		self.detailLevelIdx = config.plugins.OAWeather.detailLevel.getIndex()
+		# self.detailLevelIdx = config.plugins.OAWeather.detailLevel.getIndex()
+		current_value = config.plugins.OAWeather.detailLevel.value
+		choices = config.plugins.OAWeather.detailLevel.choices
+		self.detailLevelIdx = next(
+			(i for i, entry in enumerate(choices)
+			 if isinstance(entry, (tuple, list)) and len(entry) == 2 and entry[0] == current_value),
+			0  # fallback index se non trovato
+		)
 		if self.detailFrameActive:
 			self.detailFrame.showFrame()
 		if self.old_weatherservice != config.plugins.OAWeather.weatherservice.value:
@@ -1417,12 +1429,12 @@ class OAWeatherFavorites(Screen):
 		else:
 			WI = Weatherinfo(service, apikey)
 			if WI.error:
-				print("[WeatherSettingsView] Error in module 'citySearch': %s" % WI.error)
+				print("[WeatherSettingsViewNew] Error in module 'citySearch': %s" % WI.error)
 				self.cityChoice((False, _("Error in Weatherinfo"), WI.error))
 			else:
 				geodataList = WI.getCitylist(weathercity, config.osd.language.value.replace('_', '-').lower(), count=15)
 				if WI.error or geodataList is None or len(geodataList) == 0:
-					print("[WeatherSettingsView] Error in module 'citySearch': %s" % WI.error)
+					print("[WeatherSettingsViewNew] Error in module 'citySearch': %s" % WI.error)
 					self.cityChoice((False, _("Error getting City ID"), _("City '%s' not found! Please try another wording." % weathercity)))
 				else:
 					cityList = []
@@ -1430,7 +1442,7 @@ class OAWeatherFavorites(Screen):
 						try:
 							cityList.append((item[0], item[1], item[2]))
 						except Exception:
-							print("[WeatherSettingsView] Error in module 'showMenu': faulty entry in resultlist.")
+							print("[WeatherSettingsViewNew] Error in module 'showMenu': faulty entry in resultlist.")
 					self.cityChoice((True, cityList, ""))
 
 	def cityChoice(self, answer):
