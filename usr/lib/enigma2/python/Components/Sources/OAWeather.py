@@ -18,21 +18,33 @@ from math import pi, floor, cos
 from Components.config import config
 from Components.Sources.Source import Source
 from Plugins.Extensions.OAWeather.plugin import weatherhandler
+import gettext
+_ = gettext.gettext
 
 
 class OAWeather(Source):
 
 	YAHOOnightswitch = {
-					"3": "47", "4": "47", "11": "45", "12": "45", "13": "46", "14": "46", "15": "46", "16": "46", "28": "27",
-					"30": "29", "32": "31", "34": "33", "37": "47", "38": "47", "40": "45", "41": "46", "42": "46", "43": "46"
-					}
-	METEOnightswitch = {"1": "2", "3": "4", "B": "C", "H": "I", "J": "K"}
+		"3": "47", "4": "47", "11": "45", "12": "45", "13": "46", "14": "46",
+		"15": "46", "16": "46", "28": "27", "30": "29", "32": "31", "34": "33",
+		"37": "47", "38": "47", "40": "45", "41": "46", "42": "46", "43": "46"
+	}
 
-	YAHOOdayswitch = {"27": "28", "29": "30", "31": "32", "33": "34", "45": "39", "46": "16", "47": "4"}
+	METEOnightswitch = {
+		"1": "2", "3": "4", "B": "C", "H": "I", "J": "K"
+	}
 
-	METEOdayswitch = {"2": "1", "3": "4", "C": "B", "I": "H", "K": "J"}
+	YAHOOdayswitch = {
+		"27": "28", "29": "30", "31": "32", "33": "34", "45": "39", "46": "16", "47": "4"
+	}
 
-	services = {"MSN": "msn", "OpenMeteo": "omw", "openweather": "owm"}
+	METEOdayswitch = {
+		"2": "1", "3": "4", "C": "B", "I": "H", "K": "J"
+	}
+
+	services = {
+		"MSN": "msn", "OpenMeteo": "omw", "openweather": "owm"
+	}
 
 	def __init__(self):
 		Source.__init__(self)
