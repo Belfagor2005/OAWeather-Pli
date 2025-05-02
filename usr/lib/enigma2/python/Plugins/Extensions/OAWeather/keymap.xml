@@ -7,5 +7,7 @@
 		<key id="KEY_BLUE" mapto="blue" flags="m" />
 		<key id="KEY_YELLOW" mapto="yellow" flags="m" />
 		<key id="KEY_MENU" mapto="menu" flags="m" />
+		<key id="KEY_CHANNELUP" mapto="channelup" flags="m" />
+		<key id="KEY_CHANNELDOWN" mapto="channeldown" flags="m" />		
 	</map>
 </keymap>

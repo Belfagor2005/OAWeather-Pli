@@ -21,8 +21,8 @@ from __future__ import print_function
 from Components.ActionMap import ActionMap, HelpableActionMap
 from Components.ConfigList import ConfigListScreen
 from Components.Label import Label
-from Components.Pixmap import Pixmap
 from Components.MenuList import MenuList
+from Components.Pixmap import Pixmap
 from Components.Sources.List import List
 from Components.Sources.StaticText import StaticText
 from Components.config import config, getConfigListEntry, ConfigSubsection, ConfigYesNo, ConfigSelection, ConfigSelectionNumber, ConfigText
@@ -44,12 +44,15 @@ from pickle import dump, load
 from time import time
 from twisted.internet.reactor import callInThread
 from xml.etree.ElementTree import tostring, parse
+
 import sys
 if sys.version_info[0] >= 3:
 	from Tools.Directories import SCOPE_SKINS
 else:
 	from Tools.Directories import SCOPE_SKIN
-from . import _
+
+from . import __version__, _
+
 screenwidth = getDesktop(0).size()
 
 
@@ -80,7 +83,7 @@ def logout(data):
 
 class WeatherHelper():
 	def __init__(self):
-		self.version = "v2.0"
+		self.version = __version__
 		self.favoritefile = resolveFilename(SCOPE_CONFIG, "oaweather_fav.dat")
 		self.locationDefault = ("Hamburg, DE", 10.00065, 53.55034)
 		self.favoriteList = []
@@ -179,7 +182,23 @@ config.plugins.OAWeather.windspeedMetricUnit = ConfigSelection(default="km/h", c
 config.plugins.OAWeather.trendarrows = ConfigYesNo(default=True)
 config.plugins.OAWeather.weatherservice = ConfigSelection(default="MSN", choices=[("MSN", _("MSN weather")), ("OpenMeteo", _("Open-Meteo Wetter")), ("openweather", _("OpenWeatherMap"))])
 config.plugins.OAWeather.debug = ConfigYesNo(default=False)
+
+
 USELOGFILE = config.plugins.OAWeather.debug
+if USELOGFILE.value:
+	logout(data="LOGFILE_On")
+	logstatus = "on"
+	logstatusin = "on"
+
+else:
+	logout(data="LOGFILE_Off")
+	logstatus = "on"
+	logstatusin = "off"
+
+
+MODULE_NAME = "OAWeather"
+CACHEFILE = resolveFilename(SCOPE_CONFIG, "OAWeather.dat")
+PLUGINPATH = join(resolveFilename(SCOPE_PLUGINS), 'Extensions/OAWeather')
 
 
 class WeatherSettingsView(Setup):
@@ -239,22 +258,6 @@ class WeatherSettingsView(Setup):
 		configItem.setValue(configItem.default)
 		if SAVE:
 			configItem.save()
-
-
-if USELOGFILE.value:
-	logout(data="LOGFILE_On")
-	logstatus = "on"
-	logstatusin = "on"
-
-else:
-	logout(data="LOGFILE_Off")
-	logstatus = "on"
-	logstatusin = "off"
-
-
-MODULE_NAME = "OAWeather"
-CACHEFILE = resolveFilename(SCOPE_CONFIG, "OAWeather.dat")
-PLUGINPATH = join(resolveFilename(SCOPE_PLUGINS), 'Extensions/OAWeather')
 
 
 class WeatherSettingsViewNew(ConfigListScreen, Screen):
@@ -808,48 +811,59 @@ class OAWeatherPlugin(Screen):
 		for i in range(1, 6):
 			self["weekday%s_temp" % i].text = ""
 
-	if sys.version_info[0] >= 3:
-		logout(data="Python 3 getVal")
+	def getVal(self, key: str):
+		return self.data.get(key, self.na) if self.data else self.na
 
-		def getVal(self, key):
-			return self.data.get(key, self.na) if self.data else self.na
-	else:
-		logout(data="Python 2 getval")
+	def getCurrentVal(self, key: str, default: str = _("n/a")):
+		value = default
+		if self.data and "current" in self.data:
+			current = self.data.get("current", {})
+			if key in current:
+				value = current.get(key, default)
+		return value
 
-		def getVal(self, key):
-			return self.data.get(key, self.na) if self.data else self.na
+	# if sys.version_info[0] >= 3:
+		# logout(data="Python 3 getVal")
 
-	if sys.version_info[0] >= 3:
-		logout(data="Python 3 getCurrentVal")
+		# def getVal(self, key):
+			# return self.data.get(key, self.na) if self.data else self.na
+	# else:
+		# logout(data="Python 2 getval")
 
-		def getCurrentVal(self, key, default=_("n/a")):
-			value = default
-			if self.data and "current" in self.data:
-				current = self.data.get("current", {})
-				if key in current:
-					value = current.get(key, default)
-			return value
-	else:
-		logout(data="Python 2 getCurrentVal")
+		# def getVal(self, key):
+			# return self.data.get(key, self.na) if self.data else self.na
 
-		def getCurrentVal(self, key, default=_("n/a")):
-			value = default
-			if self.data and "current" in self.data:
-				current = self.data.get("current", {})
-				if key in current:
-					value = current.get(key, default)
-			return value
+	# if sys.version_info[0] >= 3:
+		# logout(data="Python 3 getCurrentVal")
+
+		# def getCurrentVal(self, key, default=_("n/a")):
+			# value = default
+			# if self.data and "current" in self.data:
+				# current = self.data.get("current", {})
+				# if key in current:
+					# value = current.get(key, default)
+			# return value
+	# else:
+		# logout(data="Python 2 getCurrentVal")
+
+		# def getCurrentVal(self, key, default=_("n/a")):
+			# value = default
+			# if self.data and "current" in self.data:
+				# current = self.data.get("current", {})
+				# if key in current:
+					# value = current.get(key, default)
+			# return value
 
 	def getWeatherDataCallback(self):
 		self["statustext"].text = ""
-		forecast = self.data.get("forecast")
+		forecast = self.data.get("forecast", {})
 		tempunit = self.data.get("tempunit", self.na)
 		for day in range(1, 6):
-			item = forecast.get(day)
-			lowTemp = item.get("minTemp")
-			highTemp = item.get("maxTemp")
-			text = item.get("text")
-			self["weekday%s_temp" % day].text = "%s %s|%s %s\n%s" % (highTemp, tempunit, lowTemp, tempunit, text)
+			item = forecast.get(day, {})
+			lowTemp = item.get("minTemp", "")
+			highTemp = item.get("maxTemp", "")
+			text = item.get("text", "")
+			self[f"weekday{day}_temp"].text = "%s %s|%s %s\n%s" % (highTemp, tempunit, lowTemp, tempunit, text)
 
 	def keyOk(self):
 		if weatherhelper.favoriteList and weatherhandler.WI.getDataReady():
@@ -927,15 +941,20 @@ class OAWeatherDetailview(Screen):
 		self.currFavIdx = weatherhelper.favoriteList.index(currlocation) if currlocation in weatherhelper.favoriteList else 0
 		self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
 		# self.detailLevels = config.plugins.OAWeather.detailLevel.getChoices()
-		self.detailLevels = config.plugins.OAWeather.detailLevel.choices
 		# self.detailLevelIdx = config.plugins.OAWeather.detailLevel.getIndex()
-		current_value = config.plugins.OAWeather.detailLevel.value
-		choices = config.plugins.OAWeather.detailLevel.choices
-		self.detailLevelIdx = next(
-			(i for i, entry in enumerate(choices)
-				if isinstance(entry, (tuple, list)) and len(entry) == 2 and entry[0] == current_value),
-			0  # fallback index if not found
+		self.detailLevels = config.plugins.OAWeather.detailLevel.choices
+		self.detailLevelIdx = config.plugins.OAWeather.detailLevel.choices.index(
+			config.plugins.OAWeather.detailLevel.value
 		)
+
+		# self.detailLevels = config.plugins.OAWeather.detailLevel.choices
+		# current_value = config.plugins.OAWeather.detailLevel.value
+		# choices = config.plugins.OAWeather.detailLevel.choices
+		# self.detailLevelIdx = next(
+			# (i for i, entry in enumerate(choices)
+				# if isinstance(entry, (tuple, list)) and len(entry) == 2 and entry[0] == current_value),
+			# 0
+		# )
 		self.currdatehour = datetime.today().replace(minute=0, second=0, microsecond=0)
 		self.currdaydelta = 0
 		self.skinList = []
@@ -1115,7 +1134,6 @@ class OAWeatherDetailview(Screen):
 			hourData = []
 			hourData.append([timestr, press, temp, feels, humid, precip, windSpd, windDir, windGusts, uvIndex, visibility, shortDesc, longDesc, iconpix])
 			days = weather["forecast"]["days"]
-
 			if days:
 				self.sunList = []
 				self.moonList = []
@@ -1286,7 +1304,6 @@ class OAWeatherDetailview(Screen):
 						dayList.append(hourData)
 						hourData = []
 						self.sunList.append((sunrisestr, sunsetstr))
-
 			self.dayList = dayList
 
 	def getIsNight(self, currtime, sunrisestr, sunsetstr):
@@ -1352,13 +1369,9 @@ class OAWeatherDetailview(Screen):
 		self.session.openWithCallback(self.configFinished, WeatherSettingsViewNew)
 
 	def configFinished(self, result=None):
-		# self.detailLevelIdx = config.plugins.OAWeather.detailLevel.getIndex()
-		current_value = config.plugins.OAWeather.detailLevel.value
-		choices = config.plugins.OAWeather.detailLevel.choices
-		self.detailLevelIdx = next(
-			(i for i, entry in enumerate(choices)
-				if isinstance(entry, (tuple, list)) and len(entry) == 2 and entry[0] == current_value),
-			0  # fallback index if not found
+		self.detailLevels = config.plugins.OAWeather.detailLevel.choices
+		self.detailLevelIdx = config.plugins.OAWeather.detailLevel.choices.index(
+			config.plugins.OAWeather.detailLevel.value
 		)
 		if self.detailFrameActive:
 			self.detailFrame.showFrame()
@@ -1450,7 +1463,6 @@ class OAWeatherFavorites(Screen):
 		if answer[0] is True:
 			self.searchcity = ""
 			self.session.openWithCallback(self.returnCityChoice, ChoiceBox, title=_("Select your location"), list=tuple(answer[1]))
-
 		elif answer[0] is False:
 			self.session.open(MessageBox, text=answer[2], type=MessageBox.TYPE_WARNING, timeout=3)
 			self.session.openWithCallback(self.returnCityname, VirtualKeyBoard, title=_("Weather cityname (at least 3 letters):"), text=self.searchcity)
