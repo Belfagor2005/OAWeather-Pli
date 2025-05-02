@@ -321,6 +321,12 @@ class Weatherinfo:
 			try:
 				response = get(link, headers=self.headers, params=params, timeout=(3.05, 6))
 				response.raise_for_status()
+				if "application/json" not in response.headers.get("Content-Type", ""):
+					self.error = "[%s] ERROR: response not JSON." % MODULE_NAME
+					return {}
+				if len(response.content) > 10 * 1024 * 1024:
+					self.error = "[%s] ERROR: response too large." % MODULE_NAME
+					return {}
 				jsonData = loads(response.content)
 			except exceptions.RequestException as err:
 				self.error = "[%s] ERROR in module 'apiserver': '%s" % (MODULE_NAME, str(err))
@@ -332,27 +338,51 @@ class Weatherinfo:
 		self.error = None
 		self.info = None
 		self.dataReady = False
-		if self.geodata:
-			tempunit = "F" if self.units == "imperial" else "C"
-			link = "68747470733A2F2F6170692E6D736E2E636F6D2F7765617468657266616C636F6E2F776561746865722F6F766572766965773F266C6F6E3D2573266C61743D2573266C6F63616C653D257326756E6974733D25732661707049643D39653231333830632D666631392D346337382D623465612D313935353865393361356433266170694B65793D6A356934674471484C366E47597778357769356B5268586A74663263357167465839667A666B30544F6F266F6369643D73757065726170702D6D696E692D7765617468657226777261704F446174613D66616C736526696E636C7564656E6F7763617374696E673D7472756526666561747572653D6C696665646179266C696665446179733D363"
-		else:
-			self.error = "[%s] ERROR in module 'msnparser': missing geodata." % MODULE_NAME
+
+		if not self.geodata or len(self.geodata) < 3:
+			self.error = "[%s] ERROR in module 'msnparser': missing or incomplete geodata." % MODULE_NAME
 			if self.callback:
 				self.callback(None, self.error)
 			return
-		if self.callback:
-			print("[%s] accessing MSN for weatherdata..." % MODULE_NAME)
-		self.info = self.apiserver(bytes.fromhex(link[:-1]).decode('utf-8') % (float(self.geodata[1]), float(self.geodata[2]), self.scheme, tempunit))
-		if self.callback:
+
+		tempunit = "F" if self.units == "imperial" else "C"
+		link = (
+			"68747470733A2F2F6170692E6D736E2E636F6D2F7765617468657266616C636F6E2F"
+			"776561746865722F6F766572766965773F266C6F6E3D2573266C61743D2573266C6F"
+			"63616C653D257326756E6974733D25732661707049643D39653231333830632D6666"
+			"31392D346337382D623465612D313935353865393361356433266170694B65793D6A"
+			"356934674471484C366E47597778357769356B5268586A7466326335716746583966"
+			"7A666B30544F6F266F6369643D73757065726170702D6D696E692D77656174686572"
+			"67777261704F446174613D66616C736526696E636C7564656E6F7763617374696E67"
+			"3D7472756526666561747572653D6C696665646179266C696665446179733D363"
+		)
+
+		try:
+			decoded_link = bytes.fromhex(link).decode("utf-8")
+			lat = float(self.geodata[1])
+			lon = float(self.geodata[2])
+			formatted_link = decoded_link % (lon, lat, self.scheme, tempunit)
+
+			if self.callback:
+				print("[%s] accessing MSN for weatherdata..." % MODULE_NAME)
+
+			self.info = self.apiserver(formatted_link)
+
 			if self.error:
-				self.callback(None, self.error)
+				if self.callback:
+					self.callback(None, self.error)
 			else:
 				print("[%s] MSN successfully accessed..." % MODULE_NAME)
 				self.dataReady = True
-				self.callback(self.getreducedinfo() if self.reduced else self.info, None)
-		if self.info and self.error is None:
-			self.dataReady = True
-			return self.getreducedinfo() if self.reduced else self.info
+				result = self.getreducedinfo() if self.reduced else self.info
+				if self.callback:
+					self.callback(result, None)
+				return result
+
+		except Exception as e:
+			self.error = "[%s] ERROR in msnparser: %s" % (MODULE_NAME, str(e))
+			if self.callback:
+				self.callback(None, self.error)
 
 	def omwparser(self):
 		self.error = None
