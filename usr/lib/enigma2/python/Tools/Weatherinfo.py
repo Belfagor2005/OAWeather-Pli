@@ -1,14 +1,14 @@
 #########################################################################################################
-#                                                                                                       #
+#																										#
 #  Weatherinfo for openATV is a multiplatform tool (runs on Enigma2 & Windows and probably many others) #
-#  Coded by Mr.Servo @ openATV and jbleyel @ openATV (c) 2022                                           #
-#  Learn more about the tool by running it in the shell: "python Weatherinfo.py -h"                     #
+#  Coded by Mr.Servo @ openATV and jbleyel @ openATV (c) 2022											#
+#  Learn more about the tool by running it in the shell: "python Weatherinfo.py -h"						#
 #  -----------------------------------------------------------------------------------------------------#
-#  This plugin is licensed under the GNU version 3.0 <https://www.gnu.org/licenses/gpl-3.0.en.html>.    #
-#  This plugin is NOT free software. It is open source, you are allowed to modify it (if you keep       #
-#  the license), but it may not be commercially distributed. Advertise with this tool is not allowed.   #
-#  For other uses, permission from the authors is necessary.                                            #
-#                                                                                                       #
+#  This plugin is licensed under the GNU version 3.0 <https://www.gnu.org/licenses/gpl-3.0.en.html>.	#
+#  This plugin is NOT free software. It is open source, you are allowed to modify it (if you keep		#
+#  the license), but it may not be commercially distributed. Advertise with this tool is not allowed.	#
+#  For other uses, permission from the authors is necessary.											#
+#																										#
 #########################################################################################################
 
 from sys import exit, argv
@@ -20,7 +20,7 @@ from random import choice
 from twisted.internet.reactor import callInThread
 
 MODULE_NAME = __name__.split(".")[-1]
-SOURCES = ["msn", "omw", "owm"]  # supported sourcecodes (the order must not be changed)
+SOURCES = ["msn", "omw", "owm"]	 # supported sourcecodes (the order must not be changed)
 DESTINATIONS = ["yahoo", "meteo"]  # supported iconcodes (the order must not be changed)
 
 
@@ -47,7 +47,7 @@ class Weatherinfo:
 			"n422": ("14", "W"), "n430": ("12", "Q"), "n431": ("5", "W"), "n432": ("15", "W"),
 			"n440": ("4", "0"), "n500": ("29", "I"), "n600": ("20", "E"), "n603": ("10", "U"),
 			"n605": ("17", "X"), "n705": ("17", "X"), "n900": ("21", "M"), "n905": ("17", "X"),
-			"n907": ("21", "M")  # "xxxx1": "WindyV2"
+			"n907": ("21", "M")	 # "xxxx1": "WindyV2"
 		}  # mapping: msn -> (yahoo, meteo)
 		self.omwCodes = {
 			"0": ("32", "B"), "1": ("34", "B"), "2": ("30", "H"), "3": ("28", "N"), "45": ("20", "M"),
@@ -91,7 +91,7 @@ class Weatherinfo:
 			"n421": "RainSnowShowersNightV2", "n422": "N422SnowV2", "n430": "ModerateRainV2",
 			"n431": "RainSnowV2", "n432": "HeavySnowV2", "n440": "ThunderstormsV2", "n500": "PartlyCloudyNightV2",
 			"n600": "FogV2", "n603": "FreezingRainV2", "n605": "BlowingHailV2", "n705": "BlowingHailV2",
-			"n905": "BlowingHailV2", "n907": "Haze", "n900": "Haze"  # "xxxx1": "WindyV2"
+			"n905": "BlowingHailV2", "n907": "Haze", "n900": "Haze"	 # "xxxx1": "WindyV2"
 		}  # cleartext description of msn-weathercodes
 		self.omwDescs = {
 			"0": "clear sky", "1": "mainly clear", "2": "partly cloudy", "3": "overcast", "45": "fog", "48": "depositing rime fog", "51": "light drizzle",
@@ -196,7 +196,7 @@ class Weatherinfo:
 			return
 		result = dict()
 		if src == "msn":
-			code = code[:4]  # remove 'windy'-flag in MSN-code if present
+			code = code[:4]	 # remove 'windy'-flag in MSN-code if present
 		if code in common:
 			result["yahooCode"] = common[code][0]
 			result["meteoCode"] = common[code][1]
@@ -338,51 +338,27 @@ class Weatherinfo:
 		self.error = None
 		self.info = None
 		self.dataReady = False
-
-		if not self.geodata or len(self.geodata) < 3:
-			self.error = "[%s] ERROR in module 'msnparser': missing or incomplete geodata." % MODULE_NAME
+		if self.geodata:
+			tempunit = "F" if self.units == "imperial" else "C"
+			link = "68747470733A2F2F6170692E6D736E2E636F6D2F7765617468657266616C636F6E2F776561746865722F6F766572766965773F266C6F6E3D2573266C61743D2573266C6F63616C653D257326756E6974733D25732661707049643D39653231333830632D666631392D346337382D623465612D313935353865393361356433266170694B65793D6A356934674471484C366E47597778357769356B5268586A74663263357167465839667A666B30544F6F266F6369643D73757065726170702D6D696E692D7765617468657226777261704F446174613D66616C736526696E636C7564656E6F7763617374696E673D7472756526666561747572653D6C696665646179266C696665446179733D363"
+		else:
+			self.error = "[%s] ERROR in module 'msnparser': missing geodata." % MODULE_NAME
 			if self.callback:
 				self.callback(None, self.error)
 			return
-
-		tempunit = "F" if self.units == "imperial" else "C"
-		link = (
-			"68747470733A2F2F6170692E6D736E2E636F6D2F7765617468657266616C636F6E2F"
-			"776561746865722F6F766572766965773F266C6F6E3D2573266C61743D2573266C6F"
-			"63616C653D257326756E6974733D25732661707049643D39653231333830632D6666"
-			"31392D346337382D623465612D313935353865393361356433266170694B65793D6A"
-			"356934674471484C366E47597778357769356B5268586A7466326335716746583966"
-			"7A666B30544F6F266F6369643D73757065726170702D6D696E692D77656174686572"
-			"67777261704F446174613D66616C736526696E636C7564656E6F7763617374696E67"
-			"3D7472756526666561747572653D6C696665646179266C696665446179733D363"
-		)
-
-		try:
-			decoded_link = bytes.fromhex(link).decode("utf-8")
-			lat = float(self.geodata[1])
-			lon = float(self.geodata[2])
-			formatted_link = decoded_link % (lon, lat, self.scheme, tempunit)
-
-			if self.callback:
-				print("[%s] accessing MSN for weatherdata..." % MODULE_NAME)
-
-			self.info = self.apiserver(formatted_link)
-
+		if self.callback:
+			print("[%s] accessing MSN for weatherdata..." % MODULE_NAME)
+		self.info = self.apiserver(bytes.fromhex(link[:-1]).decode('utf-8') % (float(self.geodata[1]), float(self.geodata[2]), self.scheme, tempunit))
+		if self.callback:
 			if self.error:
-				if self.callback:
-					self.callback(None, self.error)
+				self.callback(None, self.error)
 			else:
 				print("[%s] MSN successfully accessed..." % MODULE_NAME)
 				self.dataReady = True
-				result = self.getreducedinfo() if self.reduced else self.info
-				if self.callback:
-					self.callback(result, None)
-				return result
-
-		except Exception as e:
-			self.error = "[%s] ERROR in msnparser: %s" % (MODULE_NAME, str(e))
-			if self.callback:
-				self.callback(None, self.error)
+				self.callback(self.getreducedinfo() if self.reduced else self.info, None)
+		if self.info and self.error is None:
+			self.dataReady = True
+			return self.getreducedinfo() if self.reduced else self.info
 
 	def omwparser(self):
 		self.error = None
@@ -442,7 +418,7 @@ class Weatherinfo:
 		if self.callback:
 			print("[%s] accessing OWM for weatherdata..." % MODULE_NAME)
 		self.info = self.apiserver("https://api.openweathermap.org/data/2.5/weather", params)  # current only
-		self.info |= self.apiserver("https://api.openweathermap.org/data/2.5/forecast", params)  # forecasts only
+		self.info |= self.apiserver("https://api.openweathermap.org/data/2.5/forecast", params)	 # forecasts only
 		if self.callback:
 			if self.error:
 				self.callback(None, self.error)
@@ -572,7 +548,7 @@ class Weatherinfo:
 						reduced["visibiliyunit"] = "miles" if self.units == "imperial" else "km"
 						isotime = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0).isoformat()[:16]
 						reduced["current"] = dict()
-						for idx, time in enumerate(hourly["time"]):  # collect current
+						for idx, time in enumerate(hourly["time"]):	 # collect current
 							if isotime in time:
 								reduced["current"]["observationPoint"] = self.createFullname(location)
 								reduced["current"]["observationTime"] = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -612,7 +588,7 @@ class Weatherinfo:
 						hourpress, hourcount = 0, 0
 						avpress = []
 						hourlytime = hourly["time"]
-						for idx, daydate in enumerate(hourlytime):  # collect all sealevel pressures and create averages per day
+						for idx, daydate in enumerate(hourlytime):	# collect all sealevel pressures and create averages per day
 							if todaydate.startswith(daydate[:10]):
 								hourpress += hourly["pressure_msl"][idx]
 								hourcount += 1
@@ -710,10 +686,10 @@ class Weatherinfo:
 						for index, forecast in enumerate(self.info.get("list", [])):  # collect forecast of today and next 5 days
 							main = forecast.get("main", {})
 							if not index:
-								reduced["current"]["pressure"] = f"{round(main.get('pressure', 0))}"  # catch the missing data for current weather
-								reduced["current"]["minTemp"] = f"{round(main.get('temp_min', 0))}"
-								reduced["current"]["maxTemp"] = f"{round(main.get('temp_max', 0))}"
-								reduced["current"]["precipitation"] = f"{round(forecast.get('pop', 0) * 100)}"
+								reduced["current"]["pressure"] = f"{round(main.get("pressure", 0))}"  # catch the missing data for current weather
+								reduced["current"]["minTemp"] = f"{round(main.get("temp_min", 0))}"
+								reduced["current"]["maxTemp"] = f"{round(main.get("temp_max", 0))}"
+								reduced["current"]["precipitation"] = f"{round(forecast.get("pop", 0) * 100)}"
 							hourpress += main.get("pressure", 0)
 							hourcount += 1
 							tmin = min(tmin, main.get("temp_min", 0))
@@ -733,7 +709,7 @@ class Weatherinfo:
 									yahoocode = iconCode.get("yahooCode", "NA")
 									meteocode = iconCode.get("meteoCode", ")")
 								text = forecast["weather"][0]["description"]
-							if "18:00:00" in dt_text and not yahoocode:  # in case we call the forecast late today: get current weather icon
+							if "18:00:00" in dt_text and not yahoocode:	 # in case we call the forecast late today: get current weather icon
 								pvdrCode = forecast["weather"][0]["id"]
 								iconCode = self.convert2icon("OWM", pvdrCode)
 								if iconCode:
@@ -894,7 +870,7 @@ class Weatherinfo:
 			return self.error
 
 	def createFullname(self, location):
-		components = list(dict.fromkeys(location))  # remove duplicates from list
+		components = list(dict.fromkeys(location))	# remove duplicates from list
 		len_components = len(components)
 		if len_components > 2:
 			return (f"{components[0]}, {components[1]}, {components[-1]}")
