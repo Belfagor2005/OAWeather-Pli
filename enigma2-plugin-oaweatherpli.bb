@@ -12,7 +12,7 @@ inherit gitpkgv allarch
 SRCREV = "${AUTOREV}"
 PV = "1.2+git${SRCPV}"
 PKGV = "1.2+git${GITPKGV}"
-VER ="4.7"
+VER ="3.5"
 PR = "r0"
 
 SRC_URI = "git://github.com/Belfagor2005/OAWeather-Pli.git;protocol=https;branch=main"
