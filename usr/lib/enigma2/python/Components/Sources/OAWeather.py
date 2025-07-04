@@ -17,6 +17,8 @@ from datetime import datetime
 from Components.config import config
 from Components.Sources.Source import Source
 from Plugins.Extensions.OAWeather.plugin import weatherhandler
+import gettext
+_ = gettext.gettext
 
 
 class OAWeather(Source):
