@@ -249,8 +249,8 @@ class OAWeather(Converter, object):
 			self.debug("getIconFilename not found mode:%s index:%s self.path:%s path:%s" % (self.mode, self.index, self.path, path))
 		return ""
 
+	iconfilename = property(getIconFilename)
+
 	def debug(self, text: str):
 		if self.enabledebug:
 			print("[OAWeather] Converter DEBUG %s" % text)
-
-	iconfilename = property(getIconFilename)
