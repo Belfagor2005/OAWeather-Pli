@@ -633,7 +633,7 @@ class WeatherHandler():
 		self.onUpdate = []
 		self.refreshCallback = None
 		self.skydirs = {"N": _("North"), "NE": _("Northeast"), "E": _("East"), "SE": _("Southeast"), "S": _("South"), "SW": _("Southwest"), "W": _("West"), "NW": _("Northwest")}
-		
+
 	def getValidGeocode(self):
 		"""Get valid coordinates or use default ones"""
 		try:
@@ -929,7 +929,7 @@ class OAWeatherPlugin(Screen):
 			self[f"weekday{day}_temp"].text = "%s %s|%s %s\n%s" % (highTemp, tempunit, lowTemp, tempunit, text)
 
 	def keyOk(self):
-		if weatherhelper.favoriteList and weatherhandler.WI.getDataReady():
+		if weatherhelper.favoriteList and weatherhandler.getValid() == 0:
 			self.session.open(OAWeatherDetailview, weatherhelper.favoriteList[self.currFavIdx])
 
 	def favoriteUp(self):
@@ -995,12 +995,25 @@ class OAWeatherDetailFrame(Screen):
 		self.show()
 
 	def updateFrame(self, dataList):
-		valueMax = len(self.widgets) - 3  # except shortdesc and longdesc
-		for index, widget in enumerate(self.widgets):
-			value = dataList[index]
-			self[widget].setText(value if value or index > valueMax else _("n/a"))
-		self["icon"].instance.setPixmap(dataList[13])
-		self.showFrame()
+		try:
+			widgets = (
+				"time", "pressure", "temp", "feels", "humid", "precip", "windspeed",
+				"winddir", "windgusts", "uvindex", "visibility", "shortdesc", "longdesc"
+			)
+
+			# Ensure we have at least 14 elements
+			if not dataList or len(dataList) < 14:
+				dataList = [_("N/A")] * 14
+
+			for index, widget in enumerate(widgets):
+				value = dataList[index] if index < len(dataList) else _("N/A")
+				self[widget].setText(str(value))
+
+			icon = dataList[13] if len(dataList) > 13 else None
+			self["icon"].instance.setPixmap(icon)
+			self.showFrame()
+		except Exception as e:
+			logger.error(f"Error updating detail frame: {str(e)}")
 
 	def hideFrame(self):
 		self.hide()
@@ -1044,6 +1057,7 @@ class OAWeatherDetailview(Screen):
 		self["moonset"] = StaticText("")
 		self["moonrisepix"] = Pixmap()
 		self["moonsetpix"] = Pixmap()
+		self["cityarea"] = Label()
 		self["key_red"] = StaticText(_("Exit"))
 		self["key_green"] = StaticText(_("Chose favorite"))
 		self["key_yellow"] = StaticText(_("Previous favorite"))
@@ -1086,10 +1100,18 @@ class OAWeatherDetailview(Screen):
 
 	def firstRun(self):
 		moonrisepix = join(PLUGINPATH, "Images/moonrise.png")
+		moonsetpix = join(PLUGINPATH, "Images/moonset.png")
+
+		if not exists(moonrisepix):
+			self["moonrisepix"].hide()
+
+		if not exists(moonsetpix):
+			self["moonsetpix"].hide()
+
 		if exists(moonrisepix):
 			self["moonrisepix"].instance.setPixmapFromFile(moonrisepix)
 		self["moonrisepix"].hide()
-		moonsetpix = join(PLUGINPATH, "Images/moonset.png")
+
 		if exists(moonsetpix):
 			self["moonsetpix"].instance.setPixmapFromFile(moonsetpix)
 		self["detailList"].style = self.detailLevels[self.detailLevelIdx]
@@ -1099,38 +1121,57 @@ class OAWeatherDetailview(Screen):
 		callInThread(self.parseData)
 
 	def updateSkinList(self):
-		weekday = _('Today') if self.currdatehour.weekday() == datetime.today().weekday() else self.currdatehour.strftime("%a")
-		self["currdatetime"].setText(f"{weekday} {self.currdatehour.strftime('%d %b')}")
-		uvIndexPix = self.uvIndexPix if config.plugins.OAWeather.weatherservice.value != "openweather" else None  # OWM does not support UV-index at all
-		iconpix = [self.pressPix, self.tempPix, self.feelPix, self.humidPix, self.precipPix, self.WindSpdPpix, self.WindDirPix, self.WindGustPix, uvIndexPix, self.visiblePix]
-		if self.dayList:
-			hourData = self.dayList[self.currdaydelta]
-			skinList = []
-			for hour in hourData:  # add set of icons to each hourly-entry
-				skinList.append(tuple(hour + iconpix))
-			currHour = self.currdatehour.strftime("%H:00 h")
-			found, index = False, 0
-			for index, hourData in enumerate(skinList):
-				if currHour in hourData[0]:
-					found = True
-					break
-			self["detailList"].setCurrentIndex(index if found else 0)
-		else:
-			hourData = ["", "", "", "", "", "", "", "", "", "", "", _("No data available."), _("No data available for this period."), None]
-			skinList = [tuple(hourData + iconpix)]
-		self["detailList"].updateList(skinList)
-		self.skinList = skinList
-		self.updateDetailFrame()
+		try:
+			weekday = _('Today') if self.currdatehour.weekday() == datetime.today().weekday() else self.currdatehour.strftime("%a")
+			self["currdatetime"].setText(f"{weekday} {self.currdatehour.strftime('%d %b')}")
+
+			iconpix = [
+				self.pressPix, self.tempPix, self.feelPix,
+				self.humidPix, self.precipPix, self.WindSpdPpix,
+				self.WindDirPix, self.WindGustPix,
+				self.uvIndexPix if config.plugins.OAWeather.weatherservice.value != "openweather" else None,
+				self.visiblePix
+			]
+
+			if self.dayList:
+				hourData = self.dayList[self.currdaydelta]
+				skinList = []
+				for hour in hourData:
+					skinList.append(tuple(hour + iconpix))
+			else:
+				# Create default "No data" entry
+				no_data = [
+					_("No data"), _("--"), _("--"), _("--"), _("--"), _("--"),
+					_("--"), _("--"), _("--"), _("--"), _("--"),
+					_("Weather data unavailable"),
+					_("Try refreshing or check settings"),
+					None
+				]
+				skinList = [tuple(no_data + iconpix)]
+
+			self["detailList"].setList(skinList)
+			self.skinList = skinList
+			self.updateDetailFrame()
+		except Exception as e:
+			logger.error(f"Error updating skin list: {str(e)}")
 
 	def updateDetailFrame(self):
 		if self.detailFrameActive:
-			self.detailFrame.updateFrame(list(self["detailList"].getCurrent()))
+			current = self["detailList"].getCurrent()
+			if current is not None:  # Add null check
+				self.detailFrame.updateFrame(list(current))
 
 	def toggleDetailframe(self):
-		if self.detailFrameActive:
-			self.detailFrame.hideFrame()
-		self.detailFrameActive = not self.detailFrameActive
-		self.updateDetailFrame()
+		try:
+			if self.detailFrameActive:
+				self.detailFrame.hideFrame()
+			else:
+				self.detailFrame.showFrame()
+			self.detailFrameActive = not self.detailFrameActive
+			self.updateDetailFrame()
+		except Exception as e:
+			logger.error(f"Error toggling detail frame: {str(e)}")
+			self.detailFrameActive = False
 
 	def toggleDetailLevel(self):
 		self.detailLevelIdx ^= 1
@@ -1160,10 +1201,23 @@ class OAWeatherDetailview(Screen):
 		return LoadPixmap(cached=True, path=iconfile) if exists(iconfile) else None
 
 	def parseData(self):
-		weatherservice = config.plugins.OAWeather.weatherservice.value
-		if weatherservice in ["MSN", "OpenMeteo", "openweather"]:
-			parser = {"MSN": self.msnparser, "OpenMeteo": self.omwparser, "openweather": self.owmparser}
-			parser[weatherservice]()
+		try:
+			weatherservice = config.plugins.OAWeather.weatherservice.value
+			if weatherservice in ["MSN", "OpenMeteo", "openweather"]:
+				parser = {
+					"MSN": self.msnparser,
+					"OpenMeteo": self.omwparser,
+					"openweather": self.owmparser
+				}
+				parser[weatherservice]()
+			else:
+				logger.warning(f"Unsupported weather service: {weatherservice}")
+				self.dayList = []
+		except Exception as e:
+			logger.error(f"Weather data parsing error: {str(e)}")
+			self.dayList = []
+		finally:
+			# Always update UI even if parsing fails
 			self.updateSkinList()
 			self.updateMoonData()
 
