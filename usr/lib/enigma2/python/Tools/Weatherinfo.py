@@ -101,6 +101,25 @@ def parser_thread(obj):
 			obj.callback(info, None)
 
 
+def add_short_codes(original_dict):
+	new_entries = {}
+	for key, value in original_dict.items():
+		if key.startswith(('d', 'n')) and len(key) == 4:  # Es: d000, n100
+			short_key = key[:-1]  # Remove the last zero -> d00, n10
+			new_entries[short_key] = value
+	original_dict.update(new_entries)
+
+
+def add_short_descs(original_descs):
+	new_entries = {}
+	for key, value in original_descs.items():
+		if key.startswith(('d', 'n')) and len(key) == 4:  # d000, n100, etc.
+			short_key = key[:-1]  # d00, n10
+			if short_key not in original_descs:
+				new_entries[short_key] = value
+	original_descs.update(new_entries)
+
+
 class Weatherinfo:
 	def __init__(self, newmode="msn", apikey=None):
 		logout(data="weatherInfo")
@@ -114,18 +133,29 @@ class Weatherinfo:
 			"d422": ("16", "W"), "d430": ("12", "Q"), "d431": ("5", "W"), "d432": ("15", "W"),
 			"d440": ("4", "0"), "d500": ("28", "H"), "d600": ("20", "E"), "d603": ("10", "U"),
 			"d605": ("17", "X"), "d705": ("17", "X"), "d900": ("21", "M"), "d905": ("17", "X"),
-			"d907": ("21", "M"),
-			"n000": ("31", "C"), "n100": ("33", "C"), "n200": ("29", "I"), "n210": ("45", "Q"),
-			"n211": ("5", "W"), "n212": ("46", "W"), "n220": ("45", "Q"), "n221": ("5", "W"),
-			"n222": ("46", "W"), "n240": ("47", "Z"), "n300": ("27", "I"), "n310": ("45", "Q"),
-			"n311": ("11", "Q"), "n312": ("46", "W"), "n320": ("45", "R"), "n321": ("5", "W"),
-			"n322": ("46", "W"), "n340": ("47", "Z"), "n400": ("26", "Y"), "n410": ("9", "Q"),
-			"n411": ("5", "W"), "n412": ("14", "V"), "n420": ("9", "Q"), "n421": ("5", "W"),
-			"n422": ("14", "W"), "n430": ("12", "Q"), "n431": ("5", "W"), "n432": ("15", "W"),
-			"n440": ("4", "0"), "n500": ("29", "I"), "n600": ("20", "E"), "n603": ("10", "U"),
-			"n605": ("17", "X"), "n705": ("17", "X"), "n900": ("21", "M"), "n905": ("17", "X"),
-			"n907": ("21", "M")  # "xxxx1": "WindyV2"
-		}  # mapping: msn -> (yahoo, meteo)
+			"d907": ("21", "M"), "n000": ("31", "C"), "n100": ("33", "C"), "n200": ("29", "I"),
+			"n210": ("45", "Q"), "n211": ("5", "W"), "n212": ("46", "W"), "n220": ("45", "Q"),
+			"n221": ("5", "W"), "n222": ("46", "W"), "n240": ("47", "Z"), "n300": ("27", "I"),
+			"n310": ("45", "Q"), "n311": ("11", "Q"), "n312": ("46", "W"), "n320": ("45", "R"),
+			"n321": ("5", "W"), "n322": ("46", "W"), "n340": ("47", "Z"), "n400": ("26", "Y"),
+			"n410": ("9", "Q"), "n411": ("5", "W"), "n412": ("14", "V"), "n420": ("9", "Q"),
+			"n421": ("5", "W"), "n422": ("14", "W"), "n430": ("12", "Q"), "n431": ("5", "W"),
+			"n432": ("15", "W"), "n440": ("4", "0"), "n500": ("29", "I"), "n600": ("20", "E"),
+			"n603": ("10", "U"), "n605": ("17", "X"), "n705": ("17", "X"), "n900": ("21", "M"),
+			"n905": ("17", "X"), "n907": ("21", "M"),
+
+			# lululla added
+			"d00": ("32", "B"), "d10": ("34", "B"), "d20": ("30", "H"), "d21": ("12", "Q"),
+			"d22": ("11", "Q"), "d30": ("28", "H"), "d31": ("11", "Q"), "d32": ("39", "R"),
+			"d34": ("4", "0"), "d40": ("26", "Y"), "d41": ("9", "Q"), "d42": ("9", "Q"),
+			"d43": ("12", "Q"), "d44": ("4", "0"), "d50": ("28", "H"), "d60": ("20", "E"),
+			"n00": ("31", "C"), "n10": ("33", "C"), "n20": ("29", "I"), "n21": ("45", "Q"),
+			"n22": ("45", "Q"), "n24": ("47", "Z"), "n30": ("27", "I"), "n31": ("45", "Q"),
+			"n32": ("45", "R"), "n42": ("9", "Q"), "n43": ("12", "Q"), "n50": ("29", "I"),
+			"n60": ("20", "E")
+		}
+		add_short_codes(self.msnCodes)
+		
 		self.omwCodes = {
 			"0": ("32", "B"), "1": ("34", "B"), "2": ("30", "H"), "3": ("28", "N"), "45": ("20", "M"),
 			"48": ("21", "J"), "51": ("9", "Q"), "53": ("9", "Q"), "55": ("9", "R"), "56": ("8", "V"),
@@ -168,8 +198,49 @@ class Weatherinfo:
 			"n421": "RainSnowShowersNightV2", "n422": "N422SnowV2", "n430": "ModerateRainV2",
 			"n431": "RainSnowV2", "n432": "HeavySnowV2", "n440": "ThunderstormsV2", "n500": "PartlyCloudyNightV2",
 			"n600": "FogV2", "n603": "FreezingRainV2", "n605": "BlowingHailV2", "n705": "BlowingHailV2",
-			"n905": "BlowingHailV2", "n907": "Haze", "n900": "Haze"  # "xxxx1": "WindyV2"
+			"n905": "BlowingHailV2", "n907": "Haze", "n900": "Haze",  # "xxxx1": "WindyV2"
+
+			# add from lululla for map codes msn
+			"d00": "SunnyDayV3",                 # same as d000
+			"d10": "LightRainDay",               # added by you
+			"d20": "FogDay",                     # same as d600
+			"d21": "D210LightRainShowersV2",     # same as d210
+			"d22": "LightRainShowerDay",         # same as d220
+			"d30": "ThunderstormDay",            # same as d240/d340
+			"d31": "D310LightRainShowersV2",     # same as d310
+			"d32": "RainShowersDayV2",           # same as d320
+			"d34": "D340TstormsV2",              # same as d340
+			"d40": "CloudyV3",                   # same as d400
+			"d41": "LightRainV3",                # same as d410
+			"d42": "HeavyDrizzle",               # same as d420
+			"d43": "ModerateRainV2",             # same as d430
+			"d44": "ThunderstormsV2",            # same as d440
+			"d50": "MostlyCloudyDayV2",          # same as d500
+			"d60": "FogV2",                      # same as d600
+
+			# Night entries (nXX)
+			"n00": "ClearNightV3",               # same as n000
+			"n10": "LightRainNight",             # added by you
+			"n20": "FogNight",                   # same as n600
+			"n21": "N210LightRainShowersV2",     # same as n210
+			"n22": "LightRainShowerNight",       # same as n220
+			"n24": "N240TstormsV2",              # same as n240
+			"n30": "MostlyCloudyNightV2",        # same as n300
+			"n31": "N310LightRainShowersV2",     # same as n310
+			"n32": "RainShowersNightV2",         # same as n320
+			"n34": "N340TstormsV2",              # same as n340
+			"n40": "CloudyV3",                   # same as n400
+			"n41": "LightRainV3",                # same as n410
+			"n42": "HeavyDrizzle",               # same as n420
+			"n43": "ModerateRainV2",             # same as n430
+			"n44": "ThunderstormsV2",            # same as n440
+			"n50": "PartlyCloudyNightV2",        # same as n500
+			"n60": "FogV2",                      # same as n600
 		}  # cleartext description of msn-weathercodes
+
+		# modded from lululla add auto desc
+		add_short_descs(self.msnDescs)
+
 		self.omwDescs = {
 			"0": "clear sky", "1": "mainly clear", "2": "partly cloudy", "3": "overcast", "45": "fog", "48": "depositing rime fog", "51": "light drizzle",
 			"53": "moderate drizzle", "55": "dense intensity drizzle", "56": "light freezing drizzle", "57": "dense intensity freezing drizzle",
@@ -211,6 +282,7 @@ class Weatherinfo:
 			"K": "fog_moon", "L": "fog_cloud", "M": "fog", "N": "cloud", "O": "cloud_flash", "P": "cloud_flash_alt", "Q": "drizzle", "R": "rain",
 			"S": "windy", "T": "windy_rain", "U": "snow", "V": "snow_alt", "W": "snow_heavy", "X": "hail", "Y": "clouds", "Z": "clouds_flash"
 		}  # cleartext description of modified meteo-iconcodes
+		
 		self.error = None
 		self.info = None
 		logout(data="221 ---------------------------------------------------")
@@ -282,12 +354,9 @@ class Weatherinfo:
 		index = int(round(degree % 360 / 45)) % 8
 		return directions[index]
 
-	# def directionsign(self, degree):
-		# degree = float(degree)
-		# return u"." if degree < 0 else [u"\u2193 N", u"\u2199 NE", u"\u2190 E", u"\u2196 SE", u"\u2191 S", u"\u2197 SW", u"\u2192 W", u"\u2198 NW"][int(round(degree % 360 / 45 % 7.5))]
-
 	def convert2icon(self, src, code):
 		logout(data="convert2icon")
+		print(f"[DEBUG] Weatherinfo Raw Weather for {src}. Code Received: {code}")
 		self.error = None
 		src = src.lower()
 		if code is None:
