@@ -315,10 +315,10 @@
 		</widget>
 		<eLabel name="line" position="45,99" size="1830,1" backgroundColor="grey"/>
 		<eLabel name="line" position="45,1017" size="1830,1" backgroundColor="grey"/>
-		<eLabel name="button_red" position="75,1029" size="9,45" backgroundColor="#00821c17,#00fe0000,vertical" zPosition="1"/>
-		<eLabel name="button_green" position="375,1029" size="9,45" backgroundColor="#00006600,#0024a424,vertical" zPosition="1"/>
-		<eLabel name="button_yellow" position="675,1029" size="9,45" backgroundColor="#007a6213,#00e6c619,vertical" zPosition="1"/>
-		<eLabel name="button_blue" position="975,1029" size="9,45" backgroundColor="#101093,#4040ff,vertical" zPosition="1"/>
+		<eLabel name="button_red" position="75,1029" size="9,45" backgroundColor="#ff0000" zPosition="1"/>
+		<eLabel name="button_green" position="375,1029" size="9,45" backgroundColor="#009900" zPosition="1"/>
+		<eLabel name="button_yellow" position="675,1029" size="9,45" backgroundColor="#ffff00" zPosition="1"/>
+		<eLabel name="button_blue" position="975,1029" size="9,45" backgroundColor="#0000ff" zPosition="1"/>
 		<widget source="key_red" render="Label" position="96,1029" size="285,45" font="Regular;27" foregroundColor="#00ffffff" backgroundColor="#00000000" transparent="1" zPosition="2" halign="left" valign="center"/>
 		<widget source="key_green" render="Label" position="396,1029" size="285,45" font="Regular;27" foregroundColor="#00ffffff" backgroundColor="#00000000" transparent="1" zPosition="1" halign="left" valign="center"/>
 		<widget source="key_yellow" render="Label" position="696,1029" size="285,45" font="Regular;27" foregroundColor="#00ffffff" backgroundColor="#00000000" transparent="1" zPosition="1" halign="left" valign="center"/>
@@ -353,10 +353,10 @@
 		<widget source="headline" render="Label" font="Regular;39" position="15,3" size="1170,54" foregroundColor="grey" backgroundColor="#80000000" zPosition="3" transparent="1" valign="center" halign="left" noWrap="1"/>
 		<eLabel name="line" position="15,57" size="1200,1" backgroundColor="grey"/>
 		<eLabel name="line" position="15,543" size="1200,1" backgroundColor="grey"/>
-		<eLabel name="button_red" position="30,549" size="9,45" backgroundColor="#00821c17,#00fe0000,vertical" zPosition="1"/>
-		<eLabel name="button_green" position="315,549" size="9,45" backgroundColor="#00006600,#0024a424,vertical" zPosition="1"/>
-		<eLabel name="button_yellow" position="600,549" size="9,45" backgroundColor="#007a6213,#00e6c619,vertical" zPosition="1"/>
-		<eLabel name="button_blue" position="885,549" size="9,45" backgroundColor="#101093,#4040ff,vertical" zPosition="1"/>
+		<eLabel name="button_red" position="30,549" size="9,45" backgroundColor="#ff0000" zPosition="1"/>
+		<eLabel name="button_green" position="315,549" size="9,45" backgroundColor="#009900" zPosition="1"/>
+		<eLabel name="button_yellow" position="600,549" size="9,45" backgroundColor="#ffff00" zPosition="1"/>
+		<eLabel name="button_blue" position="885,549" size="9,45" backgroundColor="#0000ff" zPosition="1"/>
 		<widget source="key_red" render="Label" position="51,549" size="225,45" font="Regular;27" foregroundColor="#00ffffff" backgroundColor="#00000000" transparent="1" zPosition="2" halign="left" valign="center"/>
 		<widget source="key_green" render="Label" position="336,549" size="225,45" font="Regular;27" foregroundColor="#00ffffff" backgroundColor="#00000000" transparent="1" zPosition="1" halign="left" valign="center"/>
 		<widget source="key_yellow" render="Label" position="621,549" size="225,45" font="Regular;27" foregroundColor="#00ffffff" backgroundColor="#00000000" transparent="1" zPosition="1" halign="left" valign="center"/>

@@ -707,30 +707,29 @@ class WeatherHandler():
 			self.refreshTimer.start(600000, True)
 			return
 		if config.plugins.OAWeather.enabled.value:
-			self.weathercity = config.plugins.OAWeather.weathercity.value
-			geocode = config.plugins.OAWeather.owm_geocode.value.split(",")
-			# DEPRECATED, will be removed in April 2023
-			if geocode == ['0.0', '0.0']:
-				geodatalist = self.WI.getCitylist(config.plugins.OAWeather.weathercity.value.split(",")[0], config.osd.language.value.replace('_', '-').lower())
-				if geodatalist is not None and len(geodatalist[0]) == 3:
-					geocode = [geodatalist[0][1], geodatalist[0][2]]
-					config.plugins.OAWeather.weathercity.value = geodatalist[0][0]
-					config.plugins.OAWeather.weathercity.save()
-					config.plugins.OAWeather.owm_geocode.value = "%s,%s" % (float(geocode[0]), float(geocode[1]))
-					config.plugins.OAWeather.owm_geocode.save()
-			# DEPRECATED, will be removed in April 2023
-			if geocode and len(geocode) == 2:
-				geodata = (self.weathercity, geocode[0], geocode[1])  # tuple ("Cityname", longitude, latitude)
+			# Get the geocode from the configuration
+			location = config.plugins.OAWeather.weatherlocation.value
+			if location and len(location) == 3:
+				weathercity, lon, lat = location
+				geodata = (weathercity, lon, lat)
 			else:
-				geodata = None
-
+				# Fallback to default if location is invalid
+				logger.error("Invalid location configuration, using default")
+				geodata = weatherhelper.locationDefault
+			
+			# Use the geodata directly
 			language = config.osd.language.value.lower().replace('_', '-')
 			unit = "imperial" if config.plugins.OAWeather.tempUnit.value == "Fahrenheit" else "metric"
-			if geodata:
-				self.WI.start(geodata=geodata, cityID=None, units=unit, scheme=language, reduced=True, callback=self.refreshWeatherDataCallback)
-			else:
-				print("[%s] error in OAWeather config" % (MODULE_NAME))
-				self.currentWeatherDataValid = 2
+			
+			# Start the weather info retrieval
+			self.WI.start(
+				geodata=geodata, 
+				cityID=None, 
+				units=unit, 
+				scheme=language, 
+				reduced=True, 
+				callback=self.refreshWeatherDataCallback
+			)
 
 	def refreshWeatherDataCallback(self, data, error):
 		if error or data is None:
@@ -864,7 +863,7 @@ class OAWeatherPlugin(Screen):
 		self["key_ok"] = StaticText(_("View details"))
 		self["key_menu"] = StaticText(_("Settings"))
 		self["actions"] = ActionMap(
-			["OAWeatherActions", "ColorActions", "InfoActions"],
+			["OAWeatherActions", "ColorActions"],
 			{
 				"ok": self.keyOk,
 				"cancel": self.close,
@@ -1066,7 +1065,7 @@ class OAWeatherDetailview(Screen):
 		self["key_info"] = StaticText(_("Details +/-"))
 		self["key_ok"] = StaticText(_("Glass"))
 		self["actions"] = ActionMap(
-			["OAWeatherActions", "ColorActions", "InfoActions"],
+			["OAWeatherActions", "ColorActions", "NavigationActions"],
 			{
 				"ok": self.toggleDetailframe,
 				"cancel": self.exit,
@@ -1158,15 +1157,17 @@ class OAWeatherDetailview(Screen):
 	def updateDetailFrame(self):
 		if self.detailFrameActive:
 			current = self["detailList"].getCurrent()
-			if current is not None:  # Add null check
-				self.detailFrame.updateFrame(list(current))
+			if current is not None:
+				# Extract only the data fields (first 14 elements)
+				data_fields = list(current)[:14]
+				self.detailFrame.updateFrame(data_fields)
 
 	def toggleDetailframe(self):
 		try:
 			if self.detailFrameActive:
 				self.detailFrame.hideFrame()
 			else:
-				self.detailFrame.showFrame()
+				self.detailFrame.showFrame()  # Show the frame
 			self.detailFrameActive = not self.detailFrameActive
 			self.updateDetailFrame()
 		except Exception as e:
