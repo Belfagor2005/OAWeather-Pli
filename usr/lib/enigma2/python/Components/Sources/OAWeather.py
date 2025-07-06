@@ -22,6 +22,9 @@ import gettext
 _ = gettext.gettext
 
 
+CITY_AREA_FORMAT = "%s, %s"
+
+
 class OAWeather(Source):
 
 	YAHOOnightswitch = {
@@ -92,7 +95,7 @@ class OAWeather(Source):
 		components = self.getCurrentVal("observationPoint").split(", ")
 		len_components = len(components)
 		if len_components > 1:
-			return "%s, %s" % (components[0], components[1])
+			return CITY_AREA_FORMAT % (components[0], components[1])
 		if len_components == 1:
 			return "%s" % components[0]
 		else:
@@ -102,7 +105,7 @@ class OAWeather(Source):
 		components = self.getCurrentVal("observationPoint").split(", ")
 		len_components = len(components)
 		if len_components > 1:
-			return "%s, %s" % (components[0], components[1])
+			return CITY_AREA_FORMAT % (components[0], components[1])
 		if len_components == 1:
 			return "%s" % components[0]
 		else:
