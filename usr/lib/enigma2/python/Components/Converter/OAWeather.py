@@ -11,7 +11,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with OAWeather.  If not, see <http://www.gnu.org/licenses/>.
+# along with OAWeather.  If not, see <https://www.gnu.org/licenses/>.
 
 # Some parts are taken from msnweathercomponent plugin for compatibility reasons.
 

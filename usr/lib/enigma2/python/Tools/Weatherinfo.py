@@ -462,7 +462,7 @@ class Weatherinfo:
 			cityname, country = self.separateCityCountry(cityname)
 			jsonData = None
 			for city in [cityname, cityname.split(" ")[0]]:
-				link = "http://api.openweathermap.org/geo/1.0/direct?q=%s%s&lang=%s&limit=15&appid=%s" % (city, "" if country is None else ",%s" % country, scheme[:2], self.apikey)
+				link = "https://api.openweathermap.org/geo/1.0/direct?q=%s%s&lang=%s&limit=15&appid=%s" % (city, "" if country is None else ",%s" % country, scheme[:2], self.apikey)
 				jsonData = self.apiserver(link)
 				if jsonData:
 					break

@@ -11,7 +11,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with OAWeather.  If not, see <http://www.gnu.org/licenses/>.
+# along with OAWeather.  If not, see <https://www.gnu.org/licenses/>.
 
 from datetime import datetime, timedelta
 from math import pi, floor, cos
@@ -357,7 +357,7 @@ class OAWeather(Source):
 		illum = 100 - abs((cos(pi * pos) + 0j) ** 1.7 * 100)
 		return abs(illum - 1) / .99 if illum - 1 > 0 else 0.0
 
-	# Author: Sean B. Palmer, Source: http://inamidst.com/code/moonphase.py
+	# Author: Sean B. Palmer, Source: https://inamidst.com/code/moonphase.py
 	def moonPosition(self, now=None):
 		if now is None:
 			now = datetime.today()
@@ -372,7 +372,7 @@ class OAWeather(Source):
 		return int(index) & 7
 
 	# series expansion of the moon orbital elements from Chapront und Chapront-Touzé
-	# Sources: htps://de.wikipedia.org/wiki/Mondbahn, http://articles.adsabs.harvard.edu/full/1994A%26A...282..663S
+	# Sources: htps://de.wikipedia.org/wiki/Mondbahn, https://articles.adsabs.harvard.edu/full/1994A%26A...282..663S
 	def moonDistance(self, now=None):
 		if now is None:
 			now = datetime.today()

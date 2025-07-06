@@ -15,7 +15,7 @@ from __future__ import print_function
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with OAWeather.  If not, see <http://www.gnu.org/licenses/>.
+# along with OAWeather.  If not, see <https://www.gnu.org/licenses/>.
 
 # Some parts are taken from MetrixHD skin and MSNWeather Plugin.
 # mod by lululla 20250629
