@@ -550,7 +550,7 @@ class Weatherinfo:
 		# lon = float(self.geodata[2])
 		# lat = float(self.geodata[1])
 		if self.cityID:
-			link = "https://api.openweathermap.org/data/2.5/forecast?id=%s&units=%s&lang=%s&appid=%s" % (self.cityID, self.units, self.scheme[: 2], self.apikey)
+			link = "http://api.openweathermap.org/data/2.5/forecast?id=%s&units=%s&lang=%s&appid=%s" % (self.cityID, self.units, self.scheme[: 2], self.apikey)
 		elif self.geodata:
 			link = "https://api.openweathermap.org/data/2.5/forecast?&lon=%s&lat=%s&units=%s&lang=%s&appid=%s" % (self.geodata[1], self.geodata[2], self.units, self.scheme[: 2], self.apikey)
 		else:
@@ -579,7 +579,7 @@ class Weatherinfo:
 		if not cityID:
 			self.error = "[%s] ERROR in module 'getCitybyID': missing cityID" % MODULE_NAME
 			return
-		link = "https://api.openweathermap.org/data/2.5/forecast?id=%s&cnt=1&appid=%s" % (cityID, self.apikey)
+		link = "http://api.openweathermap.org/data/2.5/forecast?id=%s&cnt=1&appid=%s" % (cityID, self.apikey)
 		if self.callback:
 			print("[%s] accessing OWM for cityID..." % MODULE_NAME)
 		cityname = "N/A"
@@ -614,7 +614,7 @@ class Weatherinfo:
 		if not lon or not lat:
 			self.error = "[%s] ERROR in module 'getCitylistbyGeocode': incomplete or missing coordinates" % MODULE_NAME
 			return
-		link = "https://api.openweathermap.org/geo/1.0/reverse?lon=%s&lat=%s&limit=15&appid=%s" % (lon, lat, self.apikey)
+		link = "http://api.openweathermap.org/geo/1.0/reverse?lon=%s&lat=%s&limit=15&appid=%s" % (lon, lat, self.apikey)
 		if self.callback:
 			print("[%s] accessing OWM for coordinates..." % MODULE_NAME)
 		jsonData = self.apiserver(link)
@@ -1176,8 +1176,8 @@ class Weatherinfo:
 				current = self.info["responses"][0]["weather"][0]["current"]
 				forecast = self.info["responses"][0]["weather"][0]["forecast"]["days"]
 				root = Element("weatherdata")
-				root.set("xmlns:xsd", "https://www.w3.org/2001/XMLSchema")
-				root.set("xmlns:xsi", "https://www.w3.org/2001/XMLSchema-instance")
+				root.set("xmlns:xsd", "http://www.w3.org/2001/XMLSchema")
+				root.set("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
 				w = Element("weather")
 				location = self.geodata[0].split(",")
 				locationname = "%s, %s" % (location[0], location[1]) if len(location) > 1 else location[0]
@@ -1392,10 +1392,8 @@ def main(argv):
 		if citylist and len(citylist) > 1 and not quiet:
 			print("Found the following cities/areas:")
 			for idx, item in enumerate(citylist):
-				lon = " [lon=%s" % item[1] if abs(item[1]) > 1e-9 else ""
-				lat = ", lat=%s]" % item[2] if abs(item[2]) > 1e-9 else ""
-				# lon = " [lon=%s" % item[1] if item[1] != 0.0 else ""
-				# lat = ", lat=%s]" % item[2] if item[2] != 0.0 else ""
+				lon = " [lon=%s" % item[1] if item[1] != 0.0 else ""
+				lat = ", lat=%s]" % item[2] if item[2] != 0.0 else ""
 				print("%s = %s%s%s" % (idx + 1, item[0], lon, lat))
 			choice = input("Select (1-%s)? : " % len(citylist))[: 1]
 			index = ord(choice) - 48 if len(choice) > 0 else -1
