@@ -19,7 +19,7 @@ from __future__ import print_function
 
 # Some parts are taken from MetrixHD skin and MSNWeather Plugin.
 # mod by lululla 20250629
-
+# fix asiatic language and icons 20250706
 
 import json
 import logging
@@ -275,15 +275,37 @@ class WeatherHelper():
 
 		logger.info(f"Adding new favorite: {name}")
 		self.favoriteList.append(normalized)
+
+		# Update config if this is the current location
+		if config.plugins.OAWeather.weatherlocation.value == normalized:
+			config.plugins.OAWeather.weathercity.value = name
+			config.plugins.OAWeather.owm_geocode.value = f"{lon},{lat}"
+			config.plugins.OAWeather.weathercity.save()
+			config.plugins.OAWeather.owm_geocode.save()
+
 		self.saveFavorites()
 		return True
 
 	def returnFavoriteChoice(self, favorite):
 		if favorite is not None:
-			config.plugins.OAWeather.weatherlocation.value = favorite[1]
+			selected_location = favorite[1]
+			logger.info(f"Selected location: {selected_location[0]}")
+
+			# Add to favorites if not already present
+			weatherhelper.addFavorite(selected_location)
+
+			# Update the current location in config
+			config.plugins.OAWeather.weatherlocation.value = selected_location
 			config.plugins.OAWeather.weatherlocation.save()
-			weatherhelper.addFavorite(favorite[1])
-			callInThread(weatherhandler.reset, favorite[1], self.configFinished)
+
+			# Update the city name and geocode in config
+			config.plugins.OAWeather.weathercity.value = selected_location[0]
+			config.plugins.OAWeather.owm_geocode.value = f"{selected_location[1]},{selected_location[2]}"
+			config.plugins.OAWeather.weathercity.save()
+			config.plugins.OAWeather.owm_geocode.save()
+
+			logger.info(f"Current location set to: {selected_location[0]}")
+			callInThread(weatherhandler.reset, selected_location, self.configFinished)
 
 	def reduceCityname(self, weathercity):
 		components = list(dict.fromkeys(weathercity.split(', ')))
@@ -380,7 +402,6 @@ class WeatherSettingsViewNew(ConfigListScreen, Screen):
 			},
 			-1
 		)
-		# prio=0, description=_("Weather Settings Actions"))
 		self.createSetup()
 
 		self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
@@ -716,18 +737,18 @@ class WeatherHandler():
 				# Fallback to default if location is invalid
 				logger.error("Invalid location configuration, using default")
 				geodata = weatherhelper.locationDefault
-			
+
 			# Use the geodata directly
 			language = config.osd.language.value.lower().replace('_', '-')
 			unit = "imperial" if config.plugins.OAWeather.tempUnit.value == "Fahrenheit" else "metric"
-			
+
 			# Start the weather info retrieval
 			self.WI.start(
-				geodata=geodata, 
-				cityID=None, 
-				units=unit, 
-				scheme=language, 
-				reduced=True, 
+				geodata=geodata,
+				cityID=None,
+				units=unit,
+				scheme=language,
+				reduced=True,
 				callback=self.refreshWeatherDataCallback
 			)
 
@@ -853,6 +874,7 @@ class OAWeatherPlugin(Screen):
 		self.title = _("Weather Plugin")
 		self["key_blue"] = StaticText(_("Menu"))
 		self["statustext"] = StaticText()
+		self["description"] = StaticText(_('Press Key Green or Menu for Setup'))
 		self["update"] = Label(_("Update"))
 		self["current"] = Label(_("Current Weather"))
 		self["today"] = StaticText(_("Today"))
@@ -1227,11 +1249,11 @@ class OAWeatherDetailview(Screen):
 		iconpath = join(ICONSETROOT, iconpath) if iconpath else join(PLUGINPATH, "Icons")
 		dayList = []
 		responses = weatherhandler.getFulldata().get("responses")
-		
+
 		# add lululla for debug
 		with open("/tmp/oaweater_msn_log.txt", "w") as f:
 			json.dump(responses, f, indent=4)
-		
+
 		if responses:  # collect latest available data
 			weather = responses[0]["weather"][0]
 			current = weather["current"]

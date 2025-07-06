@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OAWeather\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-04 15:59+0200\n"
-"PO-Revision-Date: 2025-07-04 16:08+0200\n"
+"POT-Creation-Date: 2025-07-06 16:58+0200\n"
+"PO-Revision-Date: 2025-07-06 16:59+0200\n"
 "Last-Translator: Madhouse <anonm4d@gmail.com>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/openatv/metrixhd/"
 "it/>\n"
@@ -17,120 +17,120 @@ msgstr ""
 "X-Poedit-Basepath: ../../..\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: plugin.py:68
+#: plugin.py:87
 msgid "Default"
 msgstr "Predefinito"
 
-#: plugin.py:82
+#: plugin.py:101
 msgid "Disabled"
 msgstr "Disabilitato"
 
-#: plugin.py:82
+#: plugin.py:101
 #, python-format
 msgid "%d Minutes"
 msgstr "%d Minuti"
 
-#: plugin.py:90
+#: plugin.py:109
 msgid "More Details / Smaller font"
 msgstr "Maggiori dettagli / Carattere più piccolo"
 
-#: plugin.py:90
+#: plugin.py:109
 msgid "Less details / Larger font"
 msgstr "Meno dettagli / Carattere più grande"
 
-#: plugin.py:91
+#: plugin.py:110
 msgid "Celsius"
 msgstr "Celsius"
 
-#: plugin.py:91
+#: plugin.py:110
 msgid "Fahrenheit"
 msgstr "Fahrenheit"
 
-#: plugin.py:92
+#: plugin.py:111
 msgid "km/h"
 msgstr ""
 
-#: plugin.py:92
+#: plugin.py:111
 msgid "m/s"
 msgstr ""
 
-#: plugin.py:94
+#: plugin.py:113
 msgid "MSN weather"
 msgstr "Meteo MSN"
 
-#: plugin.py:94
+#: plugin.py:113
 msgid "Open-Meteo Wetter"
 msgstr "Open-Meteo"
 
-#: plugin.py:94
+#: plugin.py:113
 msgid "OpenWeatherMap"
 msgstr "OpenWeatherMap"
 
-#: plugin.py:340
+#: plugin.py:377
 msgid "Setup"
 msgstr ""
 
-#: plugin.py:350 plugin.py:1463
+#: plugin.py:387 plugin.py:1560
 msgid "Save"
 msgstr "Salva"
 
-#: plugin.py:352
+#: plugin.py:389
 msgid "Defaults"
 msgstr "Predefinito"
 
-#: plugin.py:353
+#: plugin.py:390
 msgid "Location Selection"
 msgstr "Seleziona posizione"
 
-#: plugin.py:379 plugin.py:536
+#: plugin.py:415 plugin.py:572
 msgid "Enabled :"
 msgstr "Abilitato:"
 
-#: plugin.py:381 plugin.py:538
+#: plugin.py:417 plugin.py:574
 msgid "Weather service :"
 msgstr "Servizio Meteo:"
 
-#: plugin.py:382 plugin.py:398 plugin.py:539
+#: plugin.py:418 plugin.py:434 plugin.py:575
 msgid "Weather city name :"
 msgstr "Nome della città meteorologica:"
 
-#: plugin.py:383 plugin.py:403 plugin.py:540
+#: plugin.py:419 plugin.py:439 plugin.py:576
 msgid "Weather API key :"
 msgstr "Chiave API Meteo:"
 
-#: plugin.py:384 plugin.py:541
+#: plugin.py:420 plugin.py:577
 msgid "Temperature unit :"
 msgstr "Unità temperatura:"
 
-#: plugin.py:385
+#: plugin.py:421
 msgid "Wind speed metric unit:"
 msgstr "Unità di misura della velocità del vento:"
 
-#: plugin.py:386 plugin.py:542
+#: plugin.py:422 plugin.py:578
 msgid "Weather icon set :"
 msgstr "Set di icone meteo:"
 
-#: plugin.py:387 plugin.py:543
+#: plugin.py:423 plugin.py:579
 msgid "Weather icon night switch :"
 msgstr "Attiva icona  notturna meteo:"
 
-#: plugin.py:388 plugin.py:544
+#: plugin.py:424 plugin.py:580
 msgid "Refresh interval :"
 msgstr "Intervallo aggiornamento:"
 
-#: plugin.py:389 plugin.py:545
+#: plugin.py:425 plugin.py:581
 msgid "Cache data :"
 msgstr "Dati nella cache:"
 
-#: plugin.py:390 plugin.py:546
+#: plugin.py:426 plugin.py:582
 msgid "Enable Debug :"
 msgstr "Abilita debug:"
 
-#: plugin.py:400 plugin.py:407
+#: plugin.py:436 plugin.py:443
 msgid "Please enter a valid city name."
 msgstr "Inserisci un nome di città valido."
 
-#: plugin.py:428 plugin.py:1500
+#: plugin.py:464 plugin.py:1597
 msgid ""
 "The API key for OpenWeatherMap is not defined or invalid.\n"
 "Please verify your input data.\n"
@@ -140,188 +140,200 @@ msgstr ""
 "Si prega di verificare i dati inseriti.\n"
 "In caso contrario, le tue impostazioni non verranno salvate."
 
-#: plugin.py:445 plugin.py:1510
+#: plugin.py:481 plugin.py:1607
 #, python-format
 msgid "City '%s' not found! Please try another wording."
 msgstr "Città '%s' non trovata! Si prega di provare un'altra formulazione."
 
-#: plugin.py:548
+#: plugin.py:584
 msgid "Standard fertig"
 msgstr "Fertig standard"
 
-#: plugin.py:586
+#: plugin.py:622
 msgid "exit"
 msgstr "eci"
 
-#: plugin.py:587
+#: plugin.py:623
 msgid "Select the City and Press Ok"
 msgstr "Seleziona la città e premi Ok"
 
-#: plugin.py:620
+#: plugin.py:656
 msgid "North"
 msgstr "Nord"
 
-#: plugin.py:620
+#: plugin.py:656
 msgid "Northeast"
 msgstr "Nord Est"
 
-#: plugin.py:620
+#: plugin.py:656
 msgid "East"
 msgstr "Est"
 
-#: plugin.py:620
+#: plugin.py:656
 msgid "Southeast"
 msgstr "Sud Est"
 
-#: plugin.py:620
+#: plugin.py:656
 msgid "South"
 msgstr "Sud"
 
-#: plugin.py:620
+#: plugin.py:656
 msgid "Southwest"
 msgstr "Sud Ovest"
 
-#: plugin.py:620
+#: plugin.py:656
 msgid "West"
 msgstr "Ovest"
 
-#: plugin.py:620
+#: plugin.py:656
 msgid "Northwest"
 msgstr "Nord Ovest"
 
-#: plugin.py:781
+#: plugin.py:816
 msgid "Precipitation"
 msgstr "Precipitazioni"
 
-#: plugin.py:782
+#: plugin.py:817
 msgid "Humidity"
 msgstr "Umidità"
 
-#: plugin.py:783
+#: plugin.py:818
 msgid "Feels like"
 msgstr "Percepita"
 
-#: plugin.py:797
-msgid "Show Weather Forecast"
-msgstr "Mostra le previsioni Meteo"
-
-#: plugin.py:838 plugin.py:897 plugin.py:986 plugin.py:1020
-msgid "n/a"
-msgstr ""
-
-#: plugin.py:839
+#: plugin.py:832 plugin.py:874
 msgid "Weather Plugin"
 msgstr "Weather Plugin"
 
-#: plugin.py:840
+#: plugin.py:832
+msgid "Show Weather Forecast"
+msgstr "Mostra le previsioni Meteo"
+
+#: plugin.py:873 plugin.py:933 plugin.py:1069
+msgid "n/a"
+msgstr ""
+
+#: plugin.py:875
 msgid "Menu"
 msgstr ""
 
-#: plugin.py:842 plugin.py:1024
+#: plugin.py:877
+msgid "Press Key Green or Menu for Setup"
+msgstr "Premere il tasto verde o il menu per l'impostazione"
+
+#: plugin.py:878 plugin.py:1073
 msgid "Update"
 msgstr "Aggiornato"
 
-#: plugin.py:843
+#: plugin.py:879
 msgid "Current Weather"
 msgstr "Meteo corrente"
 
-#: plugin.py:844 plugin.py:1087
+#: plugin.py:880 plugin.py:1146
 msgid "Today"
 msgstr "Oggi"
 
-#: plugin.py:845 plugin.py:1032
+#: plugin.py:881 plugin.py:1082
 msgid "Exit"
 msgstr "Esci"
 
-#: plugin.py:846 plugin.py:1033
+#: plugin.py:882 plugin.py:1083
 msgid "Chose favorite"
 msgstr "Scelta Favorito"
 
-#: plugin.py:847 plugin.py:1034
+#: plugin.py:883 plugin.py:1084
 msgid "Previous favorite"
 msgstr "Fvorito precedente"
 
-#: plugin.py:848 plugin.py:1035
+#: plugin.py:884 plugin.py:1085
 msgid "Next favorite"
 msgstr "Prossimo favorito"
 
-#: plugin.py:849
+#: plugin.py:885
 msgid "View details"
 msgstr "Mostra dettagli"
 
-#: plugin.py:850
+#: plugin.py:886
 msgid "Settings"
 msgstr ""
 
-#: plugin.py:872
+#: plugin.py:908
 msgid "Loading weather data..."
 msgstr "Caricamento dati meteo in corso..."
 
-#: plugin.py:887
+#: plugin.py:923 plugin.py:1167
 msgid "Weather data unavailable"
 msgstr "Dati meteo non disponibili"
 
-#: plugin.py:932 plugin.py:1389
+#: plugin.py:968 plugin.py:1486
 msgid "Select desired location"
 msgstr "Seleziona la posizione desiderata"
 
-#: plugin.py:1021
+#: plugin.py:1027 plugin.py:1030
+msgid "N/A"
+msgstr ""
+
+#: plugin.py:1070
 msgid "Weather Plugin Detailview"
 msgstr "Visualizzazione dettagliata del plugin meteo"
 
-#: plugin.py:1036
+#: plugin.py:1086
 msgid "Day +/-"
 msgstr "Giorno +/-"
 
-#: plugin.py:1037
+#: plugin.py:1087
 msgid "Details +/-"
 msgstr "Dettagli +/-"
 
-#: plugin.py:1038
+#: plugin.py:1088
 msgid "Glass"
+msgstr "Zoom"
+
+#: plugin.py:1165
+msgid "No data"
 msgstr ""
 
-#: plugin.py:1104
-msgid "No data available."
-msgstr "Nessun dato disponibile."
+#: plugin.py:1165 plugin.py:1166
+msgid "--"
+msgstr ""
 
-#: plugin.py:1104
-msgid "No data available for this period."
-msgstr "Nessun dato disponibile per questo periodo."
+#: plugin.py:1168
+msgid "Try refreshing or check settings"
+msgstr "Prova ad aggiornare o controlla le impostazioni"
 
-#: plugin.py:1461
+#: plugin.py:1558
 msgid "Manage your favorites"
 msgstr "Gestisci i tuoi preferiti"
 
-#: plugin.py:1462
+#: plugin.py:1559
 msgid "Delete"
 msgstr "Eliminare"
 
-#: plugin.py:1464
+#: plugin.py:1561
 msgid "Edit"
 msgstr "Modifica"
 
-#: plugin.py:1465
+#: plugin.py:1562
 msgid "Add"
 msgstr "Aggiungere"
 
-#: plugin.py:1505
+#: plugin.py:1602
 msgid "Error in Weatherinfo"
 msgstr "Errore nelle Informazioni meteo"
 
-#: plugin.py:1510
+#: plugin.py:1607
 msgid "Error getting City ID"
 msgstr "Errore durante l'ottenimento dell'ID città"
 
-#: plugin.py:1523
+#: plugin.py:1620
 msgid "Select your location"
 msgstr "Seleziona la tua località"
 
-#: plugin.py:1526 plugin.py:1572 plugin.py:1585
+#: plugin.py:1623 plugin.py:1669 plugin.py:1682
 msgid "Weather cityname (at least 3 letters):"
 msgstr "Nome della città meteo (almeno 3 lettere):"
 
-#: plugin.py:1556
+#: plugin.py:1653
 #, python-format
 msgid ""
 "Do you really want do delete favorite\n"
@@ -330,7 +342,7 @@ msgstr ""
 "Vuoi davvero eliminare i preferiti?\n"
 "%s?"
 
-#: plugin.py:1560
+#: plugin.py:1657
 #, python-format
 msgid ""
 "The favorite '%s' corresponds to the set weather city name and therefore "
@@ -339,13 +351,19 @@ msgstr ""
 "Il preferito '%s' corrisponde al nome della città meteorologica impostata e "
 "pertanto non può essere eliminato."
 
-#: plugin.py:1581
+#: plugin.py:1678
 msgid "Favorites have been successfully saved!"
 msgstr "I preferiti sono stati salvati con successo!"
 
-#: plugin.py:1598
+#: plugin.py:1695
 msgid "Do you really want do exit without saving your modified favorite list?"
 msgstr "Vuoi davvero uscire senza salvare l'elenco dei preferiti modificato?"
+
+#~ msgid "No data available."
+#~ msgstr "Nessun dato disponibile."
+
+#~ msgid "No data available for this period."
+#~ msgstr "Nessun dato disponibile per questo periodo."
 
 #~ msgid ""
 #~ "Choose the icon set. You need to create an additional set here: /usr/"
