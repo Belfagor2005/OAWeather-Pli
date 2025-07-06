@@ -30,7 +30,9 @@ from time import time
 from xml.etree.ElementTree import parse, tostring
 
 from os import fsync, listdir, remove  # , stat
-from os.path import exists, expanduser, getmtime, isfile, join
+from os.path import exists, getmtime, isfile, join, dirname, isdir, islink
+
+import tempfile
 
 from twisted.internet.reactor import callInThread
 
@@ -115,7 +117,8 @@ config.plugins.OAWeather.debug = ConfigYesNo(default=False)
 
 
 def setup_logging():
-	log_file = "/tmp/OAWeather.log"
+	# log_file = "/tmp/OAWeather.log"
+	log_file = "/home/root/.oaweather/OAWeather.txt"
 	log_level = logging.DEBUG if config.plugins.OAWeather.debug.value else logging.INFO
 
 	logger.setLevel(log_level)
@@ -132,6 +135,16 @@ def setup_logging():
 
 
 setup_logging()
+
+
+def get_safe_tmp_file(filename):
+	tmp_dir = tempfile.gettempdir()
+	path = join(tmp_dir, filename)
+
+	if exists(path) and islink(path):
+		raise RuntimeError("Unsafe fallback file: symlink detected")
+
+	return path
 
 
 class WeatherHelper():
@@ -161,27 +174,31 @@ class WeatherHelper():
 					logger.warning("Could not sync existing city configuration")
 
 	def get_writable_path(self, filename):
+		import os
 		paths_to_try = [
 			resolveFilename(SCOPE_CONFIG, filename),
 			resolveFilename(SCOPE_HDD, filename),
 			"/tmp/" + filename,
-			expanduser("~/" + filename)
 		]
 
 		for path in paths_to_try:
 			try:
-				testfile = path + ".test"
-				with open(testfile, "w") as f:
-					f.write("test")
-				remove(testfile)
-				logger.info(f"Writable path found: {path}")
-				return path
-			except Exception as e:
-				logger.warning(f"Path not writable: {path} - {str(e)}")
+				dir_path = dirname(path)
+				if not isdir(dir_path):
+					continue
 
-		fallback = "/tmp/" + filename
-		logger.warning(f"Using fallback path: {fallback}")
-		return fallback
+				# Check if we are about to write into a symlinked file
+				if exists(path) and islink(path):
+					continue
+
+				# Try opening for write without following symlinks
+				fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND | os.O_NOFOLLOW, 0o600)
+				os.close(fd)
+				return path
+			except Exception:
+				continue
+
+		return None
 
 	def setFavoriteList(self, favoriteList):
 		self.favoriteList = favoriteList
@@ -189,26 +206,27 @@ class WeatherHelper():
 
 	def saveFavorites(self):
 		try:
-			logger.info(f"Saving {len(self.favoriteList)} favorites to {self.favoritefile}")
+			logger.info("Saving {} favorites to {}".format(len(self.favoriteList), self.favoritefile))
 			with open(self.favoritefile, "w") as fd:
 				json.dump(self.favoriteList, fd, indent=2, ensure_ascii=False)
-
-			fd.flush()
-			fsync(fd.fileno())
+				fd.flush()
+				fsync(fd.fileno())
 
 			logger.info("Favorites saved successfully")
-
 			self.updateConfigChoices()
 
 		except Exception as e:
-			logger.error(f"Error saving favorites: {str(e)}")
-			fallback = "/tmp/oaweather_fav.json"
+			logger.error("Error saving favorites: {}".format(str(e)))
+
 			try:
+				fallback = get_safe_tmp_file("oaweather_fav.json")
 				with open(fallback, "w") as fd:
 					json.dump(self.favoriteList, fd, indent=2, ensure_ascii=False)
-				logger.info(f"Saved to fallback location: {fallback}")
+					fd.flush()
+					fsync(fd.fileno())
+				logger.info("Saved to fallback location: {}".format(fallback))
 			except Exception as e2:
-				logger.error(f"Fallback save failed: {str(e2)}")
+				logger.error("Fallback save failed: {}".format(str(e2)))
 
 	def updateConfigChoices(self):
 		try:
