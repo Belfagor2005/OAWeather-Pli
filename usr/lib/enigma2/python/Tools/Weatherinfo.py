@@ -1392,8 +1392,10 @@ def main(argv):
 		if citylist and len(citylist) > 1 and not quiet:
 			print("Found the following cities/areas:")
 			for idx, item in enumerate(citylist):
-				lon = " [lon=%s" % item[1] if item[1] != 0.0 else ""
-				lat = ", lat=%s]" % item[2] if item[2] != 0.0 else ""
+				lon = " [lon=%s" % item[1] if abs(item[1]) > 1e-9 else ""
+				lat = ", lat=%s]" % item[2] if abs(item[2]) > 1e-9 else ""
+				# lon = " [lon=%s" % item[1] if item[1] != 0.0 else ""
+				# lat = ", lat=%s]" % item[2] if item[2] != 0.0 else ""
 				print("%s = %s%s%s" % (idx + 1, item[0], lon, lat))
 			choice = input("Select (1-%s)? : " % len(citylist))[: 1]
 			index = ord(choice) - 48 if len(choice) > 0 else -1
