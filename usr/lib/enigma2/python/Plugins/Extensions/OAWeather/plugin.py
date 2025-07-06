@@ -15,11 +15,11 @@ from __future__ import print_function
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with OAWeather.  If not, see <https://www.gnu.org/licenses/>.
+# along with OAWeather.  If not, see <http://www.gnu.org/licenses/>.
 
 # Some parts are taken from MetrixHD skin and MSNWeather Plugin.
 # mod by lululla 20250629
-# fix asiatic language and icons 20250706
+
 
 import json
 import logging
@@ -30,9 +30,7 @@ from time import time
 from xml.etree.ElementTree import parse, tostring
 
 from os import fsync, listdir, remove  # , stat
-from os.path import exists, getmtime, isfile, join, dirname, isdir, islink
-
-import tempfile
+from os.path import exists, expanduser, getmtime, isfile, join
 
 from twisted.internet.reactor import callInThread
 
@@ -54,7 +52,8 @@ from Components.config import (
 	ConfigYesNo,
 	ConfigSelection,
 	ConfigSelectionNumber,
-	ConfigText
+	ConfigText,
+	# configfile
 )
 
 from Plugins.Plugin import PluginDescriptor
@@ -117,8 +116,7 @@ config.plugins.OAWeather.debug = ConfigYesNo(default=False)
 
 
 def setup_logging():
-	# log_file = "/tmp/OAWeather.log"
-	log_file = "/home/root/.oaweather/OAWeather.txt"
+	log_file = "/tmp/OAWeather.log"
 	log_level = logging.DEBUG if config.plugins.OAWeather.debug.value else logging.INFO
 
 	logger.setLevel(log_level)
@@ -135,16 +133,6 @@ def setup_logging():
 
 
 setup_logging()
-
-
-def get_safe_tmp_file(filename):
-	tmp_dir = tempfile.gettempdir()
-	path = join(tmp_dir, filename)
-
-	if exists(path) and islink(path):
-		raise RuntimeError("Unsafe fallback file: symlink detected")
-
-	return path
 
 
 class WeatherHelper():
@@ -177,26 +165,24 @@ class WeatherHelper():
 		paths_to_try = [
 			resolveFilename(SCOPE_CONFIG, filename),
 			resolveFilename(SCOPE_HDD, filename),
-			join(tempfile.gettempdir(), filename),
+			"/tmp/" + filename,
+			expanduser("~/" + filename)
 		]
 
 		for path in paths_to_try:
 			try:
-				dir_path = dirname(path)
-				if not isdir(dir_path):
-					continue
-
-				if exists(path) and islink(path):
-					continue
-
-				import os
-				fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND | os.O_NOFOLLOW, 0o600)
-				os.close(fd)
+				testfile = path + ".test"
+				with open(testfile, "w") as f:
+					f.write("test")
+				remove(testfile)
+				logger.info(f"Writable path found: {path}")
 				return path
-			except Exception:
-				continue
+			except Exception as e:
+				logger.warning(f"Path not writable: {path} - {str(e)}")
 
-		return None
+		fallback = "/tmp/" + filename
+		logger.warning(f"Using fallback path: {fallback}")
+		return fallback
 
 	def setFavoriteList(self, favoriteList):
 		self.favoriteList = favoriteList
@@ -204,27 +190,26 @@ class WeatherHelper():
 
 	def saveFavorites(self):
 		try:
-			logger.info("Saving {} favorites to {}".format(len(self.favoriteList), self.favoritefile))
+			logger.info(f"Saving {len(self.favoriteList)} favorites to {self.favoritefile}")
 			with open(self.favoritefile, "w") as fd:
 				json.dump(self.favoriteList, fd, indent=2, ensure_ascii=False)
-				fd.flush()
-				fsync(fd.fileno())
+
+			fd.flush()
+			fsync(fd.fileno())
 
 			logger.info("Favorites saved successfully")
+
 			self.updateConfigChoices()
 
 		except Exception as e:
-			logger.error("Error saving favorites: {}".format(str(e)))
-
+			logger.error(f"Error saving favorites: {str(e)}")
+			fallback = "/tmp/oaweather_fav.json"
 			try:
-				fallback = get_safe_tmp_file("oaweather_fav.json")
 				with open(fallback, "w") as fd:
 					json.dump(self.favoriteList, fd, indent=2, ensure_ascii=False)
-					fd.flush()
-					fsync(fd.fileno())
-				logger.info("Saved to fallback location: {}".format(fallback))
+				logger.info(f"Saved to fallback location: {fallback}")
 			except Exception as e2:
-				logger.error("Fallback save failed: {}".format(str(e2)))
+				logger.error(f"Fallback save failed: {str(e2)}")
 
 	def updateConfigChoices(self):
 		try:
@@ -291,37 +276,15 @@ class WeatherHelper():
 
 		logger.info(f"Adding new favorite: {name}")
 		self.favoriteList.append(normalized)
-
-		# Update config if this is the current location
-		if config.plugins.OAWeather.weatherlocation.value == normalized:
-			config.plugins.OAWeather.weathercity.value = name
-			config.plugins.OAWeather.owm_geocode.value = f"{lon},{lat}"
-			config.plugins.OAWeather.weathercity.save()
-			config.plugins.OAWeather.owm_geocode.save()
-
 		self.saveFavorites()
 		return True
 
 	def returnFavoriteChoice(self, favorite):
 		if favorite is not None:
-			selected_location = favorite[1]
-			logger.info(f"Selected location: {selected_location[0]}")
-
-			# Add to favorites if not already present
-			weatherhelper.addFavorite(selected_location)
-
-			# Update the current location in config
-			config.plugins.OAWeather.weatherlocation.value = selected_location
+			config.plugins.OAWeather.weatherlocation.value = favorite[1]
 			config.plugins.OAWeather.weatherlocation.save()
-
-			# Update the city name and geocode in config
-			config.plugins.OAWeather.weathercity.value = selected_location[0]
-			config.plugins.OAWeather.owm_geocode.value = f"{selected_location[1]},{selected_location[2]}"
-			config.plugins.OAWeather.weathercity.save()
-			config.plugins.OAWeather.owm_geocode.save()
-
-			logger.info(f"Current location set to: {selected_location[0]}")
-			callInThread(weatherhandler.reset, selected_location, self.configFinished)
+			weatherhelper.addFavorite(favorite[1])
+			callInThread(weatherhandler.reset, favorite[1], self.configFinished)
 
 	def reduceCityname(self, weathercity):
 		components = list(dict.fromkeys(weathercity.split(', ')))
@@ -395,7 +358,8 @@ class WeatherSettingsViewNew(ConfigListScreen, Screen):
 		self["status"] = Label()
 		Neue_keymap = '/usr/lib/enigma2/python/Plugins/Extensions/OAWeather/keymap.xml'
 		readKeymap(Neue_keymap)
-
+		self.old_weatherlocation = config.plugins.OAWeather.weatherlocation.value
+		self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
 		self.onChangedEntry = []
 		self.list = []
 		ConfigListScreen.__init__(self, self.list, session=self.session, on_change=self.changedEntry)
@@ -901,7 +865,7 @@ class OAWeatherPlugin(Screen):
 		self["key_ok"] = StaticText(_("View details"))
 		self["key_menu"] = StaticText(_("Settings"))
 		self["actions"] = ActionMap(
-			["OAWeatherActions", "ColorActions"],
+			["OAWeatherActions", "ColorActions", "InfoActions"],
 			{
 				"ok": self.keyOk,
 				"cancel": self.close,
@@ -940,8 +904,8 @@ class OAWeatherPlugin(Screen):
 			self.checkDataTimer.stop()
 
 	def clearFields(self):
-		for i in range(1, 6):
-			self["weekday%s_temp" % i].text = ""
+		for idx in range(1, 6):
+			self["weekday%s_temp" % idx].text = ""
 
 	def getVal(self, key: str):
 		return self.data.get(key, self.na) if self.data else self.na
@@ -966,7 +930,7 @@ class OAWeatherPlugin(Screen):
 			self[f"weekday{day}_temp"].text = "%s %s|%s %s\n%s" % (highTemp, tempunit, lowTemp, tempunit, text)
 
 	def keyOk(self):
-		if weatherhelper.favoriteList and weatherhandler.getValid() == 0:
+		if weatherhelper.favoriteList and weatherhandler.WI.getDataReady():
 			self.session.open(OAWeatherDetailview, weatherhelper.favoriteList[self.currFavIdx])
 
 	def favoriteUp(self):
@@ -1103,7 +1067,7 @@ class OAWeatherDetailview(Screen):
 		self["key_info"] = StaticText(_("Details +/-"))
 		self["key_ok"] = StaticText(_("Glass"))
 		self["actions"] = ActionMap(
-			["OAWeatherActions", "ColorActions", "NavigationActions"],
+			["OAWeatherActions", "ColorActions", "InfoActions"],
 			{
 				"ok": self.toggleDetailframe,
 				"cancel": self.exit,
@@ -1185,7 +1149,6 @@ class OAWeatherDetailview(Screen):
 					None
 				]
 				skinList = [tuple(no_data + iconpix)]
-
 			self["detailList"].setList(skinList)
 			self.skinList = skinList
 			self.updateDetailFrame()
@@ -1265,12 +1228,6 @@ class OAWeatherDetailview(Screen):
 		iconpath = join(ICONSETROOT, iconpath) if iconpath else join(PLUGINPATH, "Icons")
 		dayList = []
 		responses = weatherhandler.getFulldata().get("responses")
-
-		# add lululla for debug
-		log_path = join(tempfile.gettempdir(), "oaweater_msn_log.txt")
-		with open(log_path, "w") as f:
-			json.dump(responses, f, indent=4)
-
 		if responses:  # collect latest available data
 			weather = responses[0]["weather"][0]
 			current = weather["current"]
@@ -1498,9 +1455,23 @@ class OAWeatherDetailview(Screen):
 			self.currFavIdx = (self.currFavIdx + 1) % len(weatherhelper.favoriteList)
 			callInThread(weatherhandler.reset, weatherhelper.favoriteList[self.currFavIdx], callback=self.parseData)
 
+	# def favoriteChoice(self):
+		# choiceList = [(item[0], item) for item in weatherhelper.favoriteList]
+		# self.session.openWithCallback(self.returnFavoriteChoice, ChoiceBox, title=_("Select desired location"), list=choiceList)
+
 	def favoriteChoice(self):
 		choiceList = [(item[0], item) for item in weatherhelper.favoriteList]
-		self.session.openWithCallback(self.returnFavoriteChoice, ChoiceBox, title=_("Select desired location"), list=choiceList)
+		self.session.openWithCallback(
+			lambda fav: self.session.openWithCallback(
+				lambda x: None,  # Callback vuoto
+				MessageBox,
+				_("Please use the main weather screen to change favorites"),
+				MessageBox.TYPE_INFO
+			) if fav else None,
+			ChoiceBox,
+			title=_("Select desired location"),
+			list=choiceList
+		)
 
 	def returnFavoriteChoice(self, favorite):
 		if favorite is not None:
