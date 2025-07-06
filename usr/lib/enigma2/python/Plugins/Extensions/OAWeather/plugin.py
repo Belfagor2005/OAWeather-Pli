@@ -174,11 +174,10 @@ class WeatherHelper():
 					logger.warning("Could not sync existing city configuration")
 
 	def get_writable_path(self, filename):
-		import os
 		paths_to_try = [
 			resolveFilename(SCOPE_CONFIG, filename),
 			resolveFilename(SCOPE_HDD, filename),
-			"/tmp/" + filename,
+			join(tempfile.gettempdir(), filename),
 		]
 
 		for path in paths_to_try:
@@ -187,11 +186,10 @@ class WeatherHelper():
 				if not isdir(dir_path):
 					continue
 
-				# Check if we are about to write into a symlinked file
 				if exists(path) and islink(path):
 					continue
 
-				# Try opening for write without following symlinks
+				import os
 				fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND | os.O_NOFOLLOW, 0o600)
 				os.close(fd)
 				return path
@@ -1269,7 +1267,8 @@ class OAWeatherDetailview(Screen):
 		responses = weatherhandler.getFulldata().get("responses")
 
 		# add lululla for debug
-		with open("/tmp/oaweater_msn_log.txt", "w") as f:
+		log_path = join(tempfile.gettempdir(), "oaweater_msn_log.txt")
+		with open(log_path, "w") as f:
 			json.dump(responses, f, indent=4)
 
 		if responses:  # collect latest available data
