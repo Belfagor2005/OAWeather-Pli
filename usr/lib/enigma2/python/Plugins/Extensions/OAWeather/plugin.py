@@ -239,10 +239,6 @@ class WeatherHelper():
         logger.warning(f"Using fallback path: {fallback}")
         return fallback
 
-    def setFavoriteList(self, favoriteList):
-        self.favoriteList = favoriteList
-        self.saveFavorites()
-
     def saveFavorites(self):
         """Improved version but with the same name for compatibility"""
         try:
@@ -393,6 +389,9 @@ class WeatherHelper():
             config.plugins.OAWeather.weatherlocation.save()
             weatherhelper.addFavorite(favorite[1])
             callInThread(weatherhandler.reset, favorite[1], self.configFinished)
+
+    def setFavoriteList(self, favoriteList):
+        self.favoriteList = favoriteList
 
     def reduceCityname(self, weathercity):
         components = list(dict.fromkeys(weathercity.split(', ')))
@@ -670,7 +669,7 @@ class WeatherSettingsViewNew(ConfigListScreen, Screen):
             return
 
         config.plugins.OAWeather.save()
-        config.save()
+        configfile.save()
 
         weatherhandler.reset()
         super(WeatherSettingsViewNew, self).keySave()
@@ -949,21 +948,30 @@ class OAWeatherPlugin(Screen):
             "picpath": join(PLUGINPATH, "Images")
         }
         skintext = ""
+        xml = None
 
-        if screenwidth.width() >= 1920:
-            xml = parse(join(PLUGINPATH, "skinfhd.xml")).getroot()
-        elif screenwidth.width() <= 1280:
-            xml = parse(join(PLUGINPATH, "skin.xml")).getroot()
+        width = screenwidth.width()
+        if width >= 1920:
+            xmlpath = join(PLUGINPATH, "skinfhd.xml")
+        elif width <= 1280:
+            xmlpath = join(PLUGINPATH, "skin.xml")
+        else:
+            xmlpath = None  # No matching skin
 
-        for screen in xml.findall('screen'):
-            if screen.get("name") == "OAWeatherPlugin":
-                skintext = tostring(screen).decode()
-                for key in params.keys():
-                    try:
-                        skintext = skintext.replace('{%s}' % key, params[key])
-                    except Exception as e:
-                        print("%s@key=%s" % (str(e), key))
-                break
+        if xmlpath and exists(xmlpath):
+            xml = parse(xmlpath).getroot()
+
+        if xml is not None:
+            for screen in xml.findall("screen"):
+                if screen.get("name") == "OAWeatherPlugin":
+                    skintext = tostring(screen).decode()
+                    for key in params:
+                        try:
+                            skintext = skintext.replace("{%s}" % key, params[key])
+                        except Exception as e:
+                            print("Error replacing key: %s -> %s" % (key, str(e)))
+                    break
+
         self.skin = skintext
 
         Screen.__init__(self, session)
@@ -989,7 +997,7 @@ class OAWeatherPlugin(Screen):
         self.title = _("Weather Plugin")
         self["key_blue"] = StaticText(_("Menu"))
         self["statustext"] = StaticText()
-        self["description"] = Label(_('GREEN: MANAGEMENT FAVORITES | MENU: SETUP | BLUE: HOME'))
+        self["description"] = Label(_('GREEN: MANAGEMENT FAVORITES | MENU: SETUP | INFO: DETAILS | HOME'))
         self["update"] = Label(_("Update"))
         self["current"] = Label(_("Current Weather"))
         self["today"] = StaticText(_("Today"))
@@ -1180,11 +1188,11 @@ class OAWeatherDetailview(Screen):
         self.currdatehour = datetime.today().replace(minute=0, second=0, microsecond=0)
         self.currdaydelta = 0
         self.skinList = []
+        self.dayList = [[]]
         self.sunList = []
         self.moonList = []
         self.na = _("n/a")
 
-        self.dayList = [[]]
         self.currdaydelta = 0
         self.currdatehour = datetime.today().replace(
             minute=0, second=0, microsecond=0
@@ -1245,18 +1253,16 @@ class OAWeatherDetailview(Screen):
         moonrisepix = join(PLUGINPATH, "Images/moonrise.png")
         moonsetpix = join(PLUGINPATH, "Images/moonset.png")
 
-        if not exists(moonrisepix):
-            self["moonrisepix"].hide()
-
-        if not exists(moonsetpix):
-            self["moonsetpix"].hide()
-
         if exists(moonrisepix):
             self["moonrisepix"].instance.setPixmapFromFile(moonrisepix)
-        self["moonrisepix"].hide()
+        else:
+            self["moonrisepix"].hide()
 
         if exists(moonsetpix):
             self["moonsetpix"].instance.setPixmapFromFile(moonsetpix)
+        else:
+            self["moonsetpix"].hide()
+
         self["detailList"].style = self.detailLevels[self.detailLevelIdx]
         self.startRun()
 
