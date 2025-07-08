@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OAWeather 1.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-06 17:04+0200\n"
-"PO-Revision-Date: 2025-07-06 17:04+0200\n"
+"POT-Creation-Date: 2025-07-08 00:47+0200\n"
+"PO-Revision-Date: 2025-07-08 00:47+0200\n"
 "Last-Translator: Mark Stone <Mark@kram.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -20,393 +20,486 @@ msgstr ""
 "X-Poedit-Basepath: ../../..\n"
 "X-Poedit-SearchPath-0: plugin.py\n"
 
-#: plugin.py:87
+#: plugin.py:90
 msgid "Default"
 msgstr "默认"
 
-#: plugin.py:101
+#: plugin.py:104
 msgid "Disabled"
 msgstr "已禁用"
 
-#: plugin.py:101
+#: plugin.py:104
 #, python-format
 msgid "%d Minutes"
 msgstr "%d 分钟"
 
-#: plugin.py:109
+#: plugin.py:112
 msgid "More Details / Smaller font"
 msgstr ""
 
-#: plugin.py:109
+#: plugin.py:112
 msgid "Less details / Larger font"
 msgstr ""
 
-#: plugin.py:110
+#: plugin.py:113
 msgid "Celsius"
 msgstr "摄氏度"
 
-#: plugin.py:110
+#: plugin.py:113
 msgid "Fahrenheit"
 msgstr "华氏温度"
 
-#: plugin.py:111
+#: plugin.py:114
 msgid "km/h"
 msgstr ""
 
-#: plugin.py:111
+#: plugin.py:114
 msgid "m/s"
 msgstr ""
 
-#: plugin.py:113
+#: plugin.py:116
 msgid "MSN weather"
 msgstr "MSN 天气"
 
-#: plugin.py:113
+#: plugin.py:116
 msgid "Open-Meteo Wetter"
 msgstr "Open-Meteo 天气"
 
-#: plugin.py:113
+#: plugin.py:116
 msgid "OpenWeatherMap"
 msgstr "OpenWeatherMap"
 
-#: plugin.py:377
+#: plugin.py:178
+msgid "No locations found"
+msgstr ""
+
+#: plugin.py:187 plugin.py:305 plugin.py:501
+#, fuzzy
+#| msgid "Select Your Location"
+msgid "Select location"
+msgstr "选择您的位置"
+
+#: plugin.py:487
 msgid "Setup"
 msgstr ""
 
-#: plugin.py:387 plugin.py:1560
+#: plugin.py:498 plugin.py:1799
 msgid "Save"
 msgstr ""
 
-#: plugin.py:389
+#: plugin.py:499
+msgid "Add Fav"
+msgstr ""
+
+#: plugin.py:500
 msgid "Defaults"
 msgstr "默认"
 
-#: plugin.py:390
-msgid "Location Selection"
-msgstr "选择位置"
-
-#: plugin.py:415 plugin.py:572
+#: plugin.py:527 plugin.py:703
 #, fuzzy
 #| msgid "Enabled"
 msgid "Enabled :"
 msgstr "已启用"
 
-#: plugin.py:417 plugin.py:574
+#: plugin.py:529 plugin.py:705
 #, fuzzy
 #| msgid "Weather service"
 msgid "Weather service :"
 msgstr "天气服务"
 
-#: plugin.py:418 plugin.py:434 plugin.py:575
+#: plugin.py:530 plugin.py:546 plugin.py:706
 #, fuzzy
 #| msgid "Weather city name"
 msgid "Weather city name :"
 msgstr "天气城市名称"
 
-#: plugin.py:419 plugin.py:439 plugin.py:576
+#: plugin.py:531 plugin.py:551 plugin.py:707
 #, fuzzy
 #| msgid "Weather API key"
 msgid "Weather API key :"
 msgstr "天气 API 密钥"
 
-#: plugin.py:420 plugin.py:577
+#: plugin.py:532 plugin.py:708
 #, fuzzy
 #| msgid "Temperature unit"
 msgid "Temperature unit :"
 msgstr "温度单位"
 
-#: plugin.py:421
+#: plugin.py:533
 msgid "Wind speed metric unit:"
 msgstr ""
 
-#: plugin.py:422 plugin.py:578
+#: plugin.py:534 plugin.py:709
 #, fuzzy
 #| msgid "Weather icon set"
 msgid "Weather icon set :"
 msgstr "天气图标集"
 
-#: plugin.py:423 plugin.py:579
+#: plugin.py:535 plugin.py:710
 #, fuzzy
 #| msgid "Weather icon night switch"
 msgid "Weather icon night switch :"
 msgstr "天气图标夜间开关"
 
-#: plugin.py:424 plugin.py:580
+#: plugin.py:536 plugin.py:711
 #, fuzzy
 #| msgid "Refresh interval"
 msgid "Refresh interval :"
 msgstr "刷新间隔"
 
-#: plugin.py:425 plugin.py:581
+#: plugin.py:537 plugin.py:712
 #, fuzzy
 #| msgid "Cache data"
 msgid "Cache data :"
 msgstr "缓存数据"
 
-#: plugin.py:426 plugin.py:582
+#: plugin.py:538 plugin.py:713
 #, fuzzy
 #| msgid "Enable Debug"
 msgid "Enable Debug :"
 msgstr "启用调试"
 
-#: plugin.py:436 plugin.py:443
+#: plugin.py:548 plugin.py:555
 #, fuzzy
 #| msgid "Weather city name"
 msgid "Please enter a valid city name."
 msgstr "天气城市名称"
 
-#: plugin.py:464 plugin.py:1597
-msgid ""
-"The API key for OpenWeatherMap is not defined or invalid.\n"
-"Please verify your input data.\n"
-"Otherwise your settings won't be saved."
+#: plugin.py:568
+msgid "City name must be at least 3 characters"
 msgstr ""
-"OpenWeatherMap 的 API 密钥未定义或无效。\n"
-"请验证您的输入数据。\n"
-"否则您的设置将不会被保存。"
 
-#: plugin.py:481 plugin.py:1607
-#, python-format
-msgid "City '%s' not found! Please try another wording."
-msgstr "未找到城市“%s”！请尝试其他词汇。"
+#: plugin.py:595 plugin.py:737
+msgid "Location already in favorites"
+msgstr ""
 
-#: plugin.py:584
+#: plugin.py:618 plugin.py:2021
+msgid "Invalid location format"
+msgstr ""
+
+#: plugin.py:626 plugin.py:1946
+msgid "Error processing location data"
+msgstr ""
+
+#: plugin.py:715
 msgid "Standard fertig"
 msgstr ""
 
-#: plugin.py:622
+#: plugin.py:731
+msgid "Location added to favorites"
+msgstr ""
+
+#: plugin.py:745
+#, fuzzy
+#| msgid "Error in Weatherinfo"
+msgid "Error saving location"
+msgstr "天气信息错误"
+
+#: plugin.py:780
 msgid "exit"
 msgstr ""
 
-#: plugin.py:623
+#: plugin.py:781
 msgid "Select the City and Press Ok"
 msgstr ""
 
-#: plugin.py:656
+#: plugin.py:815
 msgid "North"
 msgstr "北风"
 
-#: plugin.py:656
+#: plugin.py:815
 msgid "Northeast"
 msgstr "东北风"
 
-#: plugin.py:656
+#: plugin.py:815
 msgid "East"
 msgstr "东风"
 
-#: plugin.py:656
+#: plugin.py:815
 msgid "Southeast"
 msgstr "东南风"
 
-#: plugin.py:656
+#: plugin.py:815
 msgid "South"
 msgstr "南风"
 
-#: plugin.py:656
+#: plugin.py:815
 msgid "Southwest"
 msgstr "西南风"
 
-#: plugin.py:656
+#: plugin.py:815
 msgid "West"
 msgstr "西风"
 
-#: plugin.py:656
+#: plugin.py:815
 msgid "Northwest"
 msgstr "西北风"
 
-#: plugin.py:816
+#: plugin.py:985
 msgid "Precipitation"
 msgstr "降水量概率"
 
-#: plugin.py:817
+#: plugin.py:986
 msgid "Humidity"
 msgstr "湿度"
 
-#: plugin.py:818
+#: plugin.py:987
 msgid "Feels like"
 msgstr "体感温度"
 
-#: plugin.py:832 plugin.py:874
+#: plugin.py:1001 plugin.py:1050
 msgid "Weather Plugin"
 msgstr "天气插件"
 
-#: plugin.py:832
+#: plugin.py:1001
 msgid "Show Weather Forecast"
 msgstr "显示天气预报"
 
-#: plugin.py:873 plugin.py:933 plugin.py:1069
+#: plugin.py:1049 plugin.py:1109 plugin.py:1239
 msgid "n/a"
 msgstr "N/A"
 
-#: plugin.py:875
+#: plugin.py:1051
 msgid "Menu"
 msgstr ""
 
-#: plugin.py:877
+#: plugin.py:1053
 msgid "Press Key Green or Menu for Setup"
 msgstr ""
 
-#: plugin.py:878 plugin.py:1073
+#: plugin.py:1054 plugin.py:1249
 msgid "Update"
 msgstr "更新"
 
-#: plugin.py:879
+#: plugin.py:1055
 msgid "Current Weather"
 msgstr "当前天气"
 
-#: plugin.py:880 plugin.py:1146
+#: plugin.py:1056 plugin.py:1322
 msgid "Today"
 msgstr "今天"
 
-#: plugin.py:881 plugin.py:1082
+#: plugin.py:1057 plugin.py:1258
 msgid "Exit"
 msgstr ""
 
-#: plugin.py:882 plugin.py:1083
+#: plugin.py:1058 plugin.py:1259
 msgid "Chose favorite"
 msgstr ""
 
-#: plugin.py:883 plugin.py:1084
+#: plugin.py:1059 plugin.py:1260
 msgid "Previous favorite"
 msgstr ""
 
-#: plugin.py:884 plugin.py:1085
+#: plugin.py:1060 plugin.py:1261
 msgid "Next favorite"
 msgstr ""
 
-#: plugin.py:885
+#: plugin.py:1061
 msgid "View details"
 msgstr ""
 
-#: plugin.py:886
+#: plugin.py:1062
 msgid "Settings"
 msgstr ""
 
-#: plugin.py:908
+#: plugin.py:1084
 msgid "Loading weather data..."
 msgstr ""
 
-#: plugin.py:923 plugin.py:1167
+#: plugin.py:1099 plugin.py:1343 plugin.py:1421 plugin.py:1712
 #, fuzzy
 #| msgid "Weather city name"
 msgid "Weather data unavailable"
 msgstr "天气城市名称"
 
-#: plugin.py:968 plugin.py:1486
-#, fuzzy
-#| msgid "Select Your Location"
-msgid "Select desired location"
-msgstr "选择您的位置"
-
-#: plugin.py:1027 plugin.py:1030
+#: plugin.py:1198 plugin.py:1201
 msgid "N/A"
 msgstr ""
 
-#: plugin.py:1070
+#: plugin.py:1246
 #, fuzzy
 #| msgid "Weather Plugin"
 msgid "Weather Plugin Detailview"
 msgstr "天气插件"
 
-#: plugin.py:1086
+#: plugin.py:1262
 msgid "Day +/-"
 msgstr ""
 
-#: plugin.py:1087
+#: plugin.py:1263
 msgid "Details +/-"
 msgstr ""
 
-#: plugin.py:1088
+#: plugin.py:1264
 msgid "Glass"
 msgstr ""
 
-#: plugin.py:1165
+#: plugin.py:1341
 msgid "No data"
 msgstr ""
 
-#: plugin.py:1165 plugin.py:1166
-msgid "--"
-msgstr ""
-
-#: plugin.py:1168
+#: plugin.py:1344
 msgid "Try refreshing or check settings"
 msgstr ""
 
-#: plugin.py:1558
-msgid "Manage your favorites"
+#: plugin.py:1689
+#, fuzzy
+#| msgid "Weather city name"
+msgid "Weather data not available"
+msgstr "天气城市名称"
+
+#: plugin.py:1704 plugin.py:1727
+#, fuzzy
+#| msgid "Error getting City ID"
+msgid "Error changing day"
+msgstr "获取城市 ID 错误"
+
+#: plugin.py:1797
+msgid "Manage Favorites"
 msgstr ""
 
-#: plugin.py:1559
+#: plugin.py:1798
 msgid "Delete"
 msgstr ""
 
-#: plugin.py:1561
+#: plugin.py:1800
 msgid "Edit"
 msgstr ""
 
-#: plugin.py:1562
+#: plugin.py:1801
 msgid "Add"
 msgstr ""
 
-#: plugin.py:1602
-msgid "Error in Weatherinfo"
-msgstr "天气信息错误"
-
-#: plugin.py:1607
-msgid "Error getting City ID"
+#: plugin.py:1849
+#, fuzzy
+#| msgid "Error getting City ID"
+msgid "Error updating list"
 msgstr "获取城市 ID 错误"
 
-#: plugin.py:1620
-#, fuzzy
-#| msgid "Select Your Location"
-msgid "Select your location"
-msgstr "选择您的位置"
+#: plugin.py:1863
+msgid "Enter city name (e.g. 'Rome, IT')"
+msgstr ""
 
-#: plugin.py:1623 plugin.py:1669 plugin.py:1682
+#: plugin.py:1881
 #, fuzzy
 #| msgid "Weather city name"
-msgid "Weather cityname (at least 3 letters):"
+msgid "Please enter at least 3 characters"
 msgstr "天气城市名称"
 
-#: plugin.py:1653
-#, python-format
-msgid ""
-"Do you really want do delete favorite\n"
-"'%s'?"
+#: plugin.py:1927
+msgid "Coordinates not available for this location"
 msgstr ""
 
-#: plugin.py:1657
-#, python-format
-msgid ""
-"The favorite '%s' corresponds to the set weather city name and therefore "
-"cannot be deleted."
+#: plugin.py:1963 plugin.py:2012
+msgid "Location already exists"
 msgstr ""
 
-#: plugin.py:1678
-msgid "Favorites have been successfully saved!"
+#: plugin.py:1966
+msgid "Location with similar coordinates already exists"
 msgstr ""
 
-#: plugin.py:1695
-msgid "Do you really want do exit without saving your modified favorite list?"
+#: plugin.py:1973 plugin.py:2017
+msgid "Location added successfully"
+msgstr ""
+
+#: plugin.py:1977
+msgid "Invalid location coordinates"
+msgstr ""
+
+#: plugin.py:1980 plugin.py:2024
+#, fuzzy
+#| msgid "Error in Weatherinfo"
+msgid "Error adding location"
+msgstr "天气信息错误"
+
+#: plugin.py:2053
+msgid "Selection error"
+msgstr ""
+
+#: plugin.py:2097
+msgid "Delete {}?"
+msgstr ""
+
+#: plugin.py:2125
+#, fuzzy
+#| msgid "Location Selection"
+msgid "Location deleted"
+msgstr "选择位置"
+
+#: plugin.py:2128
+#, fuzzy
+#| msgid "Location Selection"
+msgid "Location not found"
+msgstr "选择位置"
+
+#: plugin.py:2131
+msgid "Delete error"
+msgstr ""
+
+#: plugin.py:2138
+msgid "Favorites saved"
+msgstr ""
+
+#: plugin.py:2149
+#, fuzzy
+#| msgid "Weather city name"
+msgid "Edit city name"
+msgstr "天气城市名称"
+
+#: plugin.py:2162
+#, fuzzy
+#| msgid "Location Selection"
+msgid "Invalid selection"
+msgstr "选择位置"
+
+#: plugin.py:2167
+msgid "View on map"
+msgstr ""
+
+#: plugin.py:2168
+msgid "Set as current"
+msgstr ""
+
+#: plugin.py:2169
+msgid "Discard changes"
+msgstr ""
+
+#: plugin.py:2174
+msgid "Additional Options"
 msgstr ""
 
 #~ msgid ""
-#~ "Choose the icon set. You need to create an additional set here: /usr/"
-#~ "share/enigma2/WeatherIconSets/NAME."
+#~ "The API key for OpenWeatherMap is not defined or invalid.\n"
+#~ "Please verify your input data.\n"
+#~ "Otherwise your settings won't be saved."
 #~ msgstr ""
-#~ "选择图标集。您需要在此处创建一个附加集：/usr/share/enigma2/"
-#~ "WeatherIconSets/名称。"
+#~ "OpenWeatherMap 的 API 密钥未定义或无效。\n"
+#~ "请验证您的输入数据。\n"
+#~ "否则您的设置将不会被保存。"
 
-#~ msgid ""
-#~ "Choose whether the 'night switch' should be activated or not. Some icons "
-#~ "are then displayed as night icons with moon."
+#, python-format
+#~ msgid "City '%s' not found! Please try another wording."
+#~ msgstr "未找到城市“%s”！请尝试其他词汇。"
+
+#, fuzzy
+#~| msgid "Select Your Location"
+#~ msgid "Select desired location"
+#~ msgstr "选择您的位置"
+
+#, fuzzy
+#~| msgid "Weather city name"
+#~ msgid "Weather cityname (at least 3 letters):"
+#~ msgstr "天气城市名称"
+
+#~ msgid "Choose the icon set. You need to create an additional set here: /usr/share/enigma2/WeatherIconSets/NAME."
+#~ msgstr "选择图标集。您需要在此处创建一个附加集：/usr/share/enigma2/WeatherIconSets/名称。"
+
+#~ msgid "Choose whether the 'night switch' should be activated or not. Some icons are then displayed as night icons with moon."
 #~ msgstr "选择是否激活“夜间开关”。然后，一些图标会显示为带月亮的夜间图标。"
 
-#~ msgid ""
-#~ "Enter a personalized API key for use with OpenWeatherMap (https://"
-#~ "openweathermap.org/)."
-#~ msgstr ""
-#~ "输入用于 OpenWeatherMap (https://openweathermap.org/) 的个性化 API 密钥。"
+#~ msgid "Enter a personalized API key for use with OpenWeatherMap (https://openweathermap.org/)."
+#~ msgstr "输入用于 OpenWeatherMap (https://openweathermap.org/) 的个性化 API 密钥。"
 
 #~ msgid "Enter the location for your weather forecasts."
 #~ msgstr "输入天气预报的位置。"
@@ -423,33 +516,22 @@ msgstr ""
 #~ msgid "Select 'Yes' to enable the addition of Weather."
 #~ msgstr "选择“是”以启用附加天气。"
 
-#~ msgid ""
-#~ "Select the preferred weather service to supply the weather information."
+#~ msgid "Select the preferred weather service to supply the weather information."
 #~ msgstr "选择首选的天气服务来提供天气信息。"
 
 #~ msgid "Select the temperature unit to be used for temperature displays."
 #~ msgstr "选择用于温度显示的温度单位。"
 
-#~ msgid ""
-#~ "Select this option to save that last obtained weather data locally. This "
-#~ "is used to initialize the data immediately after restart while updated "
-#~ "data is being fetched."
-#~ msgstr ""
-#~ "选择此选项可将上次获得的天气数据保存在本地。这用于在重新启动后立即初始化"
-#~ "数据，同时获取更新的数据。"
+#~ msgid "Select this option to save that last obtained weather data locally. This is used to initialize the data immediately after restart while updated data is being fetched."
+#~ msgstr "选择此选项可将上次获得的天气数据保存在本地。这用于在重新启动后立即初始化数据，同时获取更新的数据。"
 
 #~ msgid "Set default values"
 #~ msgstr "设置默认值"
 
-#~ msgid ""
-#~ "Specify how often Weather retrieves its data from the server. 'Once' "
-#~ "means the data will loaded only once after a GUI or system start."
-#~ msgstr ""
-#~ "指定天气从服务器检索数据的频率。'“一次”表示在用户界面或系统启动后，数据只"
-#~ "会加载一次。"
+#~ msgid "Specify how often Weather retrieves its data from the server. 'Once' means the data will loaded only once after a GUI or system start."
+#~ msgstr "指定天气从服务器检索数据的频率。'“一次”表示在用户界面或系统启动后，数据只会加载一次。"
 
-#~ msgid ""
-#~ "The city name is too short. More than 2 characters are needed for search."
+#~ msgid "The city name is too short. More than 2 characters are needed for search."
 #~ msgstr "城市名称太短。搜索需要 2 个以上字符。"
 
 #~ msgid "Weather Settings Actions"

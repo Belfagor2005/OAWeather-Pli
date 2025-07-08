@@ -19,7 +19,8 @@ from __future__ import print_function
 
 # Some parts are taken from MetrixHD skin and MSNWeather Plugin.
 # mod by lululla 20250629
-
+# -fix asiatic language and icons 20250706
+# -refactory favoritelist
 
 import json
 import logging
@@ -29,7 +30,7 @@ from datetime import datetime, timedelta
 from time import time
 from xml.etree.ElementTree import parse, tostring
 
-from os import fsync, listdir, remove  # , stat
+from os import fsync, listdir, remove, chmod, replace  # , stat
 from os.path import exists, expanduser, getmtime, isfile, join
 
 from twisted.internet.reactor import callInThread
@@ -46,14 +47,14 @@ from Components.Pixmap import Pixmap
 from Components.Sources.List import List
 from Components.Sources.StaticText import StaticText
 from Components.config import (
-	config,
-	getConfigListEntry,
-	ConfigSubsection,
-	ConfigYesNo,
-	ConfigSelection,
-	ConfigSelectionNumber,
-	ConfigText,
-	# configfile
+    config,
+    getConfigListEntry,
+    ConfigSubsection,
+    ConfigYesNo,
+    ConfigSelection,
+    ConfigSelectionNumber,
+    ConfigText,
+    configfile
 )
 
 from Plugins.Plugin import PluginDescriptor
@@ -70,9 +71,9 @@ from Tools.Weatherinfo import Weatherinfo
 
 
 if sys.version_info[0] >= 3:
-	from Tools.Directories import SCOPE_SKINS
+    from Tools.Directories import SCOPE_SKINS
 else:
-	from Tools.Directories import SCOPE_SKIN
+    from Tools.Directories import SCOPE_SKIN
 
 from . import __version__, _
 
@@ -80,6 +81,7 @@ screenwidth = getDesktop(0).size()
 
 MODULE_NAME = "OAWeather"
 CACHEFILE = resolveFilename(SCOPE_CONFIG, "OAWeather.dat")
+OAWEATHER_FAV = resolveFilename(SCOPE_CONFIG, "oaweather_fav.json")
 PLUGINPATH = join(resolveFilename(SCOPE_PLUGINS), 'Extensions/OAWeather')
 logger = logging.getLogger(MODULE_NAME)
 
@@ -88,14 +90,14 @@ config.plugins.OAWeather.enabled = ConfigYesNo(default=False)
 ICONSETS = [("", _("Default"))]
 
 if sys.version_info[0] >= 3:
-	ICONSETROOT = join(resolveFilename(SCOPE_SKINS), "WeatherIconSets")
+    ICONSETROOT = join(resolveFilename(SCOPE_SKINS), "WeatherIconSets")
 else:
-	ICONSETROOT = join(resolveFilename(SCOPE_SKIN), "WeatherIconSets")
+    ICONSETROOT = join(resolveFilename(SCOPE_SKIN), "WeatherIconSets")
 
 if exists(ICONSETROOT):
-	for iconset in listdir(ICONSETROOT):
-		if isfile(join(ICONSETROOT, iconset, "0.png")):
-			ICONSETS.append((iconset, iconset))
+    for iconset in listdir(ICONSETROOT):
+        if isfile(join(ICONSETROOT, iconset, "0.png")):
+            ICONSETS.append((iconset, iconset))
 
 config.plugins.OAWeather.iconset = ConfigSelection(default="", choices=ICONSETS)
 config.plugins.OAWeather.nighticons = ConfigYesNo(default=True)
@@ -116,225 +118,338 @@ config.plugins.OAWeather.debug = ConfigYesNo(default=False)
 
 
 def setup_logging():
-	log_file = "/tmp/OAWeather.log"
-	log_level = logging.DEBUG if config.plugins.OAWeather.debug.value else logging.INFO
+    log_file = "/tmp/OAWeather.log"
+    log_level = logging.DEBUG if config.plugins.OAWeather.debug.value else logging.INFO
 
-	logger.setLevel(log_level)
-	handler = logging.FileHandler(log_file)
-	formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-	handler.setFormatter(formatter)
-	logger.addHandler(handler)
+    logger.setLevel(log_level)
+    handler = logging.FileHandler(log_file)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
-	console_handler = logging.StreamHandler()
-	console_handler.setFormatter(formatter)
-	logger.addHandler(console_handler)
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
 
-	logger.info("OAWeather logging initialized")
+    logger.info("OAWeather logging initialized")
 
 
 setup_logging()
 
 
 class WeatherHelper():
-	def __init__(self):
-		self.version = __version__
-		self.favoritefile = self.get_writable_path("oaweather_fav.json")
-		logger.info(f"Using favorite file: {self.favoritefile}")
-		self.locationDefault = ("Frankfurt am Main, DE", 8.68417, 50.11552)
-		self.favoriteList = []
-		self.readFavoriteList()
-		self.syncWithConfig()
+    def __init__(self):
+        self.version = __version__
+        self.favoritefile = self.get_writable_path(OAWEATHER_FAV)
+        logger.info(f"Using favorite file: {self.favoritefile}")
+        self.locationDefault = ("Frankfurt am Main, DE", 8.68417, 50.11552)
+        self.favoriteList = []
 
-	def syncWithConfig(self):
-		current_city = config.plugins.OAWeather.weathercity.value
-		if current_city and current_city != self.locationDefault[0]:
-			found = False
-			for fav in self.favoriteList:
-				if fav[0] == current_city:
-					found = True
-					break
+        try:
+            self.readFavoriteList()
+            self.syncWithConfig()
+        except Exception as e:
+            logger.error(f"Initialization error: {str(e)}")
+            config.plugins.OAWeather.weathercity.value = GEODATA[0]
+            config.plugins.OAWeather.owm_geocode.value = GEODATA[1]
+            config.plugins.OAWeather.weathercity.save()
+            config.plugins.OAWeather.owm_geocode.save()
 
-			if not found:
-				try:
-					lon, lat = config.plugins.OAWeather.owm_geocode.value.split(",")
-					self.addFavorite((current_city, float(lon), float(lat)))
-				except:
-					logger.warning("Could not sync existing city configuration")
+    @staticmethod
+    def searchLocation(city_name, callback, session):
+        """Static method to search locations safely"""
+        try:
+            # Get the active weather service
+            service = config.plugins.OAWeather.weatherservice.value
+            apikey = config.plugins.OAWeather.apikey.value
 
-	def get_writable_path(self, filename):
-		paths_to_try = [
-			resolveFilename(SCOPE_CONFIG, filename),
-			resolveFilename(SCOPE_HDD, filename),
-			"/tmp/" + filename,
-			expanduser("~/" + filename)
-		]
+            # Initialize weather info
+            WI = Weatherinfo(service, apikey)
+            if WI.error:
+                raise Exception(WI.error)
 
-		for path in paths_to_try:
-			try:
-				testfile = path + ".test"
-				with open(testfile, "w") as f:
-					f.write("test")
-				remove(testfile)
-				logger.info(f"Writable path found: {path}")
-				return path
-			except Exception as e:
-				logger.warning(f"Path not writable: {path} - {str(e)}")
+            # Get city list
+            geodatalist = WI.getCitylist(
+                city_name,
+                config.osd.language.value.replace('_', '-').lower()
+            )
 
-		fallback = "/tmp/" + filename
-		logger.warning(f"Using fallback path: {fallback}")
-		return fallback
+            if not geodatalist:
+                raise Exception(_("No locations found"))
 
-	def setFavoriteList(self, favoriteList):
-		self.favoriteList = favoriteList
-		self.saveFavorites()
+            # Prepare results
+            results = [(item[0], float(item[1]), float(item[2])) for item in geodatalist]
 
-	def saveFavorites(self):
-		try:
-			logger.info(f"Saving {len(self.favoriteList)} favorites to {self.favoritefile}")
-			with open(self.favoritefile, "w") as fd:
-				json.dump(self.favoriteList, fd, indent=2, ensure_ascii=False)
+            # Show selection screen
+            session.openWithCallback(
+                lambda result: WeatherHelper._safeCallback(callback, result),
+                ChoiceBox,
+                title=_("Select location"),
+                list=[(f"{item[0]} [lon={item[1]:.3f}, lat={item[2]:.3f}]", item) for item in results]
+            )
 
-			fd.flush()
-			fsync(fd.fileno())
+        except Exception as e:
+            logger.error(f"Search error: {str(e)}")
+            WeatherHelper._safeCallback(callback, None)
+            session.open(MessageBox, str(e), MessageBox.TYPE_ERROR)
 
-			logger.info("Favorites saved successfully")
+    @staticmethod
+    def _safeCallback(callback, result):
+        """Safely execute callback if it exists"""
+        if callable(callback):
+            try:
+                callback(result)
+            except Exception as e:
+                logger.error(f"Callback error: {str(e)}")
 
-			self.updateConfigChoices()
+    def syncWithConfig(self):
+        current_city = config.plugins.OAWeather.weathercity.value
+        current_geocode = config.plugins.OAWeather.owm_geocode.value
+        if current_city and current_geocode and current_city != self.locationDefault[0]:
+            try:
+                lon, lat = current_geocode.split(",")
+                location = (current_city, float(lon), float(lat))
+                if location not in self.favoriteList:
+                    self.addFavorite(location)
+                config.plugins.OAWeather.weatherlocation.value = location
+                config.plugins.OAWeather.weatherlocation.save()
+            except Exception as e:
+                logger.error(f"Error syncing config: {str(e)}")
 
-		except Exception as e:
-			logger.error(f"Error saving favorites: {str(e)}")
-			fallback = "/tmp/oaweather_fav.json"
-			try:
-				with open(fallback, "w") as fd:
-					json.dump(self.favoriteList, fd, indent=2, ensure_ascii=False)
-				logger.info(f"Saved to fallback location: {fallback}")
-			except Exception as e2:
-				logger.error(f"Fallback save failed: {str(e2)}")
+    def get_writable_path(self, filename):
+        paths_to_try = [
+            resolveFilename(SCOPE_CONFIG, filename),
+            resolveFilename(SCOPE_HDD, filename),
+            "/tmp/" + filename,
+            expanduser("~/" + filename)
+        ]
 
-	def updateConfigChoices(self):
-		try:
-			if hasattr(config.plugins, 'OAWeather'):
-				choices = []
-				for item in self.favoriteList:
-					city_name = item[0].split(",")[0].strip()
-					choices.append((item, city_name))
+        for path in paths_to_try:
+            try:
+                testfile = path + ".test"
+                with open(testfile, "w") as f:
+                    f.write("test")
+                remove(testfile)
+                logger.info(f"Writable path found: {path}")
+                return path
+            except Exception as e:
+                logger.warning(f"Path not writable: {path} - {str(e)}")
 
-				config.plugins.OAWeather.weatherlocation.setChoices(choices)
+        fallback = "/tmp/" + filename
+        logger.warning(f"Using fallback path: {fallback}")
+        return fallback
 
-				current_val = config.plugins.OAWeather.weatherlocation.value
-				if not current_val or current_val not in [c[0] for c in choices]:
-					if choices:
-						config.plugins.OAWeather.weatherlocation.value = choices[0][0]
+    def setFavoriteList(self, favoriteList):
+        self.favoriteList = favoriteList
+        self.saveFavorites()
 
-				logger.info("Updated config choices")
-		except Exception as e:
-			logger.error(f"Error updating config choices: {str(e)}")
+    def saveFavorites(self):
+        """Improved version but with the same name for compatibility"""
+        try:
+            logger.info("Saving %d favorites to %s" % (len(self.favoriteList), self.favoritefile))
 
-	def readFavoriteList(self):
-		if exists(self.favoritefile):
-			try:
-				with open(self.favoritefile, "r") as file:
-					self.favoriteList = json.load(file)
+            temp_file = "%s.tmp" % self.favoritefile
+            with open(temp_file, "w", encoding="utf-8") as f:
+                json.dump(self.favoriteList, f, indent=2, ensure_ascii=False)
+                f.flush()
+                fsync(f.fileno())
 
-				if not self.favoriteList or not isinstance(self.favoriteList, list):
-					raise ValueError("Invalid favorite list format")
+            replace(temp_file, self.favoritefile)
+            chmod(self.favoritefile, 0o644)
 
-				logger.info(f"Loaded {len(self.favoriteList)} favorites from JSON")
-			except json.JSONDecodeError:
-				try:
-					with open(self.favoritefile, "rb") as file:
-						self.favoriteList = pickle.load(file)
-					logger.info(f"Loaded {len(self.favoriteList)} favorites from pickle")
+            logger.info("Favorites saved successfully")
+            return True
 
-					self.saveFavorites()
-				except Exception as e:
-					logger.error(f"Error loading favorites: {e}")
-					self.favoriteList = [self.locationDefault]
-					self.saveFavorites()
-			except Exception as e:
-				logger.error(f"Error loading favorites: {e}")
+        except Exception as e:
+            logger.error("Main save error: %s" % str(e))
 
-				self.favoriteList = [self.locationDefault]
-				self.saveFavorites()
-		else:
-			logger.info("Favorite file not found, creating default")
-			self.favoriteList = [self.locationDefault]
-			self.saveFavorites()
+            try:
+                fallback = resolveFilename(SCOPE_CONFIG, "oaweather_fav.json")
+                with open(fallback, "w", encoding="utf-8") as f:
+                    json.dump(self.favoriteList, f, indent=2, ensure_ascii=False)
+                logger.info("Fallback used: %s" % fallback)
+                return True
+            except Exception as fallback_error:
+                logger.critical("Fallback error: %s" % str(fallback_error))
+                return False
 
-		self.updateConfigChoices()
+    def showFavoriteSelection(self, session, callback):
+        choiceList = [(item[0], item) for item in self.favoriteList]
+        session.openWithCallback(
+            lambda favorite: self.handleFavoriteSelection(favorite, callback) if favorite else None,
+            ChoiceBox,
+            title=_("Select location"),
+            list=choiceList
+        )
 
-	def addFavorite(self, location):
-		name, lon, lat = location
-		normalized = (str(name).strip(), float(lon), float(lat))
-		for i, fav in enumerate(self.favoriteList):
-			if not self.isDifferentLocation(normalized, fav):
-				if len(normalized[0]) > len(fav[0]):
-					self.favoriteList[i] = normalized
-					logger.info(f"Updated favorite: {name}")
-					self.saveFavorites()
-				return False
+    def updateConfigChoices(self):
+        try:
+            if hasattr(config.plugins, 'OAWeather'):
+                choices = []
+                for item in self.favoriteList:
+                    city_name = item[0].split(",")[0].strip()
+                    choices.append((item, city_name))
 
-		logger.info(f"Adding new favorite: {name}")
-		self.favoriteList.append(normalized)
-		self.saveFavorites()
-		return True
+                config.plugins.OAWeather.weatherlocation.setChoices(choices)
 
-	def returnFavoriteChoice(self, favorite):
-		if favorite is not None:
-			config.plugins.OAWeather.weatherlocation.value = favorite[1]
-			config.plugins.OAWeather.weatherlocation.save()
-			weatherhelper.addFavorite(favorite[1])
-			callInThread(weatherhandler.reset, favorite[1], self.configFinished)
+                current_val = config.plugins.OAWeather.weatherlocation.value
+                if not current_val or current_val not in [c[0] for c in choices]:
+                    if choices:
+                        config.plugins.OAWeather.weatherlocation.value = choices[0][0]
 
-	def reduceCityname(self, weathercity):
-		components = list(dict.fromkeys(weathercity.split(', ')))
-		len_components = len(components)
-		if len_components > 2:
-			return (f"{components[0]}, {components[1]}, {components[-1]}")
-		return (f"{components[0]}, {components[1]}") if len_components == 2 else (f"{components[0]}")
+                logger.info("Updated config choices")
+        except Exception as e:
+            logger.error(f"Error updating config choices: {str(e)}")
 
-	def isolateCityname(self, weathercity):
-		return weathercity.split(",")[0]
+    def readFavoriteList(self):
+        if exists(self.favoritefile):
+            try:
+                with open(self.favoritefile, "r") as file:
+                    self.favoriteList = json.load(file)
 
-	def isDifferentLocation(self, geodata1, geodata2):
-		try:
-			x, lon1, lat1 = geodata1
-			x, lon2, lat2 = geodata2
+                if not self.favoriteList or not isinstance(self.favoriteList, list):
+                    raise ValueError("Invalid favorite list format")
 
-			distance = ((lon1 - lon2)**2 + (lat1 - lat2)**2)**0.5
-			return distance > 0.02
-		except:
-			return True
+                logger.info(f"Loaded {len(self.favoriteList)} favorites from JSON")
+            except json.JSONDecodeError:
+                try:
+                    with open(self.favoritefile, "rb") as file:
+                        self.favoriteList = pickle.load(file)
+                    logger.info(f"Loaded {len(self.favoriteList)} favorites from pickle")
 
-	def convertOldLocation(self):  # deprecated: will be removed at end of 2025
-		if config.plugins.OAWeather.owm_geocode.value and config.plugins.OAWeather.weathercity.value:
-			if config.plugins.OAWeather.weatherlocation.value == config.plugins.OAWeather.weatherlocation.default:
-				weathercity = config.plugins.OAWeather.weathercity.value
-				lon, lat = eval(str(config.plugins.OAWeather.owm_geocode.value))
-				config.plugins.OAWeather.weatherlocation.value = (weathercity, lon, lat)
-				config.plugins.OAWeather.weatherlocation.save()
-			# remove old entries from '/etc/enigma2/settings'
-			config.plugins.OAWeather.owm_geocode.value = config.plugins.OAWeather.owm_geocode.default
-			config.plugins.OAWeather.owm_geocode.save()
-			config.plugins.OAWeather.weathercity.value = config.plugins.OAWeather.weathercity.default
-			config.plugins.OAWeather.weathercity.save()
+                    self.saveFavorites()
+                except Exception as e:
+                    logger.error(f"Error loading favorites: {e}")
+                    self.favoriteList = [self.locationDefault]
+                    self.saveFavorites()
+            except Exception as e:
+                logger.error(f"Error loading favorites: {e}")
 
-	def loadSkin(self, skinName=""):
-		params = {"picpath": join(PLUGINPATH, "Images")}
-		skintext = ""
-		xml = parse(join(PLUGINPATH, "skin.xml")).getroot()
-		for screen in xml.findall('screen'):
-			if screen.get("name") == skinName:
-				skintext = tostring(screen).decode()
-				for key in params.keys():
-					try:
-						skintext = skintext.replace('{%s}' % key, params[key])
-					except Exception as e:
-						print("%s@key=%s" % (str(e), key))
-				break
-		return skintext
+                self.favoriteList = [self.locationDefault]
+                self.saveFavorites()
+        else:
+            logger.info("Favorite file not found, creating default")
+            self.favoriteList = [self.locationDefault]
+            self.saveFavorites()
+
+        self.updateConfigChoices()
+
+    def addFavorite(self, location):
+        name, lon, lat = location
+        normalized = (str(name).strip(), float(lon), float(lat))
+        for i, fav in enumerate(self.favoriteList):
+            if not self.isDifferentLocation(normalized, fav):
+                if len(normalized[0]) > len(fav[0]):
+                    self.favoriteList[i] = normalized
+                    logger.info(f"Updated favorite: {name}")
+                    self.saveFavorites()
+                return False
+
+        logger.info(f"Adding new favorite: {name}")
+        self.favoriteList.append(normalized)
+        # Update config if this is the current location
+        if config.plugins.OAWeather.weatherlocation.value == normalized:
+            config.plugins.OAWeather.weathercity.value = name
+            config.plugins.OAWeather.owm_geocode.value = f"{lon},{lat}"
+            config.plugins.OAWeather.weathercity.save()
+            config.plugins.OAWeather.owm_geocode.save()
+        self.saveFavorites()
+        return True
+
+    def handleFavoriteSelection(self, favorite, callback=None):
+        if favorite is None:
+            return
+
+        try:
+            # Extract location data
+            location = favorite[1] if isinstance(favorite, tuple) and len(favorite) > 1 else favorite
+
+            # Add to favorites if not already present
+            if not any(not self.isDifferentLocation(location, fav) for fav in self.favoriteList):
+                self.addFavorite(location)
+
+            # Update config
+            config.plugins.OAWeather.weatherlocation.value = location
+            config.plugins.OAWeather.weathercity.value = location[0]
+            config.plugins.OAWeather.owm_geocode.value = f"{location[1]},{location[2]}"
+            config.plugins.OAWeather.save()
+            config.save()
+
+            logger.info(f"Location set to: {location[0]}")
+
+            # Refresh weather data
+            if callback:
+                callInThread(weatherhandler.reset, location, callback)
+            else:
+                callInThread(weatherhandler.reset, location)
+
+        except Exception as e:
+            logger.error(f"Error handling favorite selection: {str(e)}")
+            raise
+
+    def returnFavoriteChoice(self, favorite):
+        if favorite is not None:
+            config.plugins.OAWeather.weatherlocation.value = favorite[1]
+            config.plugins.OAWeather.weatherlocation.save()
+            weatherhelper.addFavorite(favorite[1])
+            callInThread(weatherhandler.reset, favorite[1], self.configFinished)
+
+    def reduceCityname(self, weathercity):
+        components = list(dict.fromkeys(weathercity.split(', ')))
+        len_components = len(components)
+        if len_components > 2:
+            return (f"{components[0]}, {components[1]}, {components[-1]}")
+        return (f"{components[0]}, {components[1]}") if len_components == 2 else (f"{components[0]}")
+
+    def isolateCityname(self, weathercity):
+        return weathercity.split(",")[0]
+
+    def isDifferentLocation(self, geodata1, geodata2):
+        try:
+            x, lon1, lat1 = geodata1
+            x, lon2, lat2 = geodata2
+            distance = ((lon1 - lon2)**2 + (lat1 - lat2)**2)**0.5
+            return distance > 0.02
+        except:
+            return True
+
+    def convertOldLocation(self):  # deprecated: will be removed at end of 2025
+        if config.plugins.OAWeather.owm_geocode.value and config.plugins.OAWeather.weathercity.value:
+            if config.plugins.OAWeather.weatherlocation.value == config.plugins.OAWeather.weatherlocation.default:
+                weathercity = config.plugins.OAWeather.weathercity.value
+                lon, lat = eval(str(config.plugins.OAWeather.owm_geocode.value))
+                config.plugins.OAWeather.weatherlocation.value = (weathercity, lon, lat)
+                config.plugins.OAWeather.weatherlocation.save()
+            # remove old entries from '/etc/enigma2/settings'
+            config.plugins.OAWeather.owm_geocode.value = config.plugins.OAWeather.owm_geocode.default
+            config.plugins.OAWeather.owm_geocode.save()
+            config.plugins.OAWeather.weathercity.value = config.plugins.OAWeather.weathercity.default
+            config.plugins.OAWeather.weathercity.save()
+
+    def loadSkin(self, skinName=""):
+        params = {"picpath": join(PLUGINPATH, "Images")}
+        skintext = ""
+        xml = parse(join(PLUGINPATH, "skin.xml")).getroot()
+        for screen in xml.findall('screen'):
+            if screen.get("name") == skinName:
+                skintext = tostring(screen).decode()
+                for key in params.keys():
+                    try:
+                        skintext = skintext.replace('{%s}' % key, params[key])
+                    except Exception as e:
+                        print("%s@key=%s" % (str(e), key))
+                break
+        return skintext
 
 
+"""
+this config goes after helper class!!!
+config.plugins.OAWeather.weatherlocation
+It is not a setting that the user changes directly in the UI
+It is managed automatically through:
+Selecting favorites
+Searching for new locations
+"""
 weatherhelper = WeatherHelper()
 weatherhelper.readFavoriteList()
 choiceList = [(item, item[0]) for item in weatherhelper.favoriteList]
@@ -344,1350 +459,1684 @@ weatherhelper.updateConfigChoices()
 
 class WeatherSettingsViewNew(ConfigListScreen, Screen):
 
-	def __init__(self, session):
-		self.session = session
-		skintext = ""
-		xml = parse(join(PLUGINPATH, "skinconfig.xml")).getroot()
-		for screen in xml.findall('screen'):
-			if screen.get("name") == "WeatherSettingsViewNew":
-				skintext = tostring(screen).decode()
-		self.skin = skintext
-		Screen.__init__(self, session)
-		self.setTitle(_('Setup'))
-		self.status = ""
-		self["status"] = Label()
-		Neue_keymap = '/usr/lib/enigma2/python/Plugins/Extensions/OAWeather/keymap.xml'
-		readKeymap(Neue_keymap)
-		self.old_weatherlocation = config.plugins.OAWeather.weatherlocation.value
-		self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
-		self.onChangedEntry = []
-		self.list = []
-		ConfigListScreen.__init__(self, self.list, session=self.session, on_change=self.changedEntry)
+    def __init__(self, session):
+        self.session = session
+        skintext = ""
+        xml = parse(join(PLUGINPATH, "skinconfig.xml")).getroot()
+        for screen in xml.findall('screen'):
+            if screen.get("name") == "WeatherSettingsViewNew":
+                skintext = tostring(screen).decode()
+        self.skin = skintext
+        Screen.__init__(self, session)
+        self.setTitle(_('Setup'))
+        self.status = ""
+        self["status"] = Label()
+        Neue_keymap = '/usr/lib/enigma2/python/Plugins/Extensions/OAWeather/keymap.xml'
+        readKeymap(Neue_keymap)
+        self.old_weatherlocation = config.plugins.OAWeather.weatherlocation.value
+        self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
+        self.onChangedEntry = []
+        self.list = []
+        ConfigListScreen.__init__(self, self.list, session=self.session, on_change=self.changedEntry)
 
-		self["key_green"] = StaticText(_("Save"))
-		self["key_blue"] = StaticText()
-		self["key_yellow"] = StaticText(_("Defaults"))
-		self["key_red"] = StaticText(_("Location Selection"))
-		self["blueActions"] = HelpableActionMap(
-			self,
-			["ColorActions", "OkCancelActions", "OAWeatherActions"],
-			{
-				"ok": self.keyOK,
-				"left": self.keyLeft,
-				"right": self.keyRight,
-				"cancel": self.close,
-				"green": self.keySave,
-				"red": self.keycheckCity,
-				"yellow": self.defaults
-			},
-			-1
-		)
-		self.createSetup()
+        self["key_green"] = StaticText(_("Save"))
+        self["key_blue"] = StaticText(_("Add Fav"))
+        self["key_yellow"] = StaticText(_("Defaults"))
+        self["key_red"] = StaticText(_("Select location"))
+        self["blueActions"] = HelpableActionMap(
+            self,
+            ["ColorActions", "OkCancelActions", "OAWeatherActions"],
+            {
+                "ok": self.keyOK,
+                "left": self.keyLeft,
+                "right": self.keyRight,
+                "cancel": self.close,
+                "green": self.keySave,
+                "blue": self.addCurrentToFavorites,
+                "red": self.keycheckCity,
+                "yellow": self.defaults
+            },
+            -1
+        )
+        self.createSetup()
 
-		self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
-		self.citylist = []
-		self.checkcity = False
-		self.closeonsave = False
+        self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
+        self.citylist = []
+        self.checkcity = False
+        self.closeonsave = False
 
-	def createSetup(self):
-		self.editListEntry = None
-		self.list = []
-		self.list.append(getConfigListEntry(_("Enabled :"), config.plugins.OAWeather.enabled))
-		if config.plugins.OAWeather.enabled.value:
-			self.list.append(getConfigListEntry(_("Weather service :"), config.plugins.OAWeather.weatherservice))
-			self.list.append(getConfigListEntry(_("Weather city name :"), config.plugins.OAWeather.weathercity))
-			self.list.append(getConfigListEntry(_("Weather API key :"), config.plugins.OAWeather.apikey))
-			self.list.append(getConfigListEntry(_("Temperature unit :"), config.plugins.OAWeather.tempUnit))
-			self.list.append(getConfigListEntry(_("Wind speed metric unit:"), config.plugins.OAWeather.windspeedMetricUnit))
-			self.list.append(getConfigListEntry(_("Weather icon set :"), config.plugins.OAWeather.iconset))
-			self.list.append(getConfigListEntry(_("Weather icon night switch :"), config.plugins.OAWeather.nighticons))
-			self.list.append(getConfigListEntry(_("Refresh interval :"), config.plugins.OAWeather.refreshInterval))
-			self.list.append(getConfigListEntry(_("Cache data :"), config.plugins.OAWeather.cachedata))
-			self.list.append(getConfigListEntry(_("Enable Debug :"), config.plugins.OAWeather.debug))
-		self['config'].list = self.list
-		self['config'].l.setList(self.list)
+    def createSetup(self):
+        self.editListEntry = None
+        self.list = []
+        self.list.append(getConfigListEntry(_("Enabled :"), config.plugins.OAWeather.enabled))
+        if config.plugins.OAWeather.enabled.value:
+            self.list.append(getConfigListEntry(_("Weather service :"), config.plugins.OAWeather.weatherservice))
+            self.list.append(getConfigListEntry(_("Weather city name :"), config.plugins.OAWeather.weathercity))
+            self.list.append(getConfigListEntry(_("Weather API key :"), config.plugins.OAWeather.apikey))
+            self.list.append(getConfigListEntry(_("Temperature unit :"), config.plugins.OAWeather.tempUnit))
+            self.list.append(getConfigListEntry(_("Wind speed metric unit:"), config.plugins.OAWeather.windspeedMetricUnit))
+            self.list.append(getConfigListEntry(_("Weather icon set :"), config.plugins.OAWeather.iconset))
+            self.list.append(getConfigListEntry(_("Weather icon night switch :"), config.plugins.OAWeather.nighticons))
+            self.list.append(getConfigListEntry(_("Refresh interval :"), config.plugins.OAWeather.refreshInterval))
+            self.list.append(getConfigListEntry(_("Cache data :"), config.plugins.OAWeather.cachedata))
+            self.list.append(getConfigListEntry(_("Enable Debug :"), config.plugins.OAWeather.debug))
+        self['config'].list = self.list
+        self['config'].l.setList(self.list)
 
-	def keyOK(self):
-		current_item = self['config'].getCurrent()
-		if current_item:
-			item_text = current_item[0]
-			if item_text == _("Weather city name :"):
-				# Code für Weather city name Einstellung
-				title = _('Please enter a valid city name.')
-				self.session.openWithCallback(self.VirtualKeyBoardCallBack, VirtualKeyBoard, title=title)
+    def keyOK(self):
+        current_item = self['config'].getCurrent()
+        if current_item:
+            item_text = current_item[0]
+            if item_text == _("Weather city name :"):
+                title = _('Please enter a valid city name.')
+                self.session.openWithCallback(self.VirtualKeyBoardCallBack, VirtualKeyBoard, title=title)
 
-			elif item_text == _("Weather API key :"):
-				text = current_item[1].value
+            elif item_text == _("Weather API key :"):
+                text = current_item[1].value
 
-				if text == config.plugins.OAWeather.apikey.value:
-					title = _('Please enter a valid city name.')
-					self.session.openWithCallback(self.VirtualKeyBoardCallBack, VirtualKeyBoard, title=title)
+                if text == config.plugins.OAWeather.apikey.value:
+                    title = _('Please enter a valid city name.')
+                    self.session.openWithCallback(self.VirtualKeyBoardCallBack, VirtualKeyBoard, title=title)
 
-	def VirtualKeyBoardCallBack(self, callback):
-		try:
-			if callback:
-				self['config'].getCurrent()[1].value = callback
-		except:
-			pass
+    def VirtualKeyBoardCallBack(self, callback):
+        try:
+            if callback:
+                self['config'].getCurrent()[1].value = callback
+        except:
+            pass
 
-	def keycheckCity(self, closesave=False):
-		weathercity = config.plugins.OAWeather.weathercity.value.split(",")[0]
-		# self.["footnote"].setText(_("Search for City ID please wait..."))
-		self.closeonsave = closesave
-		callInThread(self.searchCity, weathercity)
+    def keycheckCity(self, closesave=False):
+        weathercity = config.plugins.OAWeather.weathercity.value.split(",")[0]
+        if len(weathercity) < 3:
+            self.showError(_("City name must be at least 3 characters"))
+            return
 
-	def searchCity(self, weathercity):
-		services = {"MSN": "msn", "OpenMeteo": "omw", "openweather": "owm"}
-		service = services.get(config.plugins.OAWeather.weatherservice.value, "msn")
-		apikey = config.plugins.OAWeather.apikey.value
-		if service == "owm" and len(apikey) < 32:
-			self.session.open(MessageBox, text=_("The API key for OpenWeatherMap is not defined or invalid.\nPlease verify your input data.\nOtherwise your settings won't be saved."), type=MessageBox.TYPE_WARNING)
-		else:
-			WI = Weatherinfo(service, config.plugins.OAWeather.apikey.value)
-			if WI.error:
-				print("[WeatherSettingsViewNew] Error in module 'searchCity': %s" % WI.error)
-				# self["footnote"].setText(_("Error in Weatherinfo"))
-				self.session.open(MessageBox, text=WI.error, type=MessageBox.TYPE_ERROR)
-			else:
-				# Den Wert von config.osd.language.value in eine separate Variable setzen
-				language_value = config.osd.language.value
-				weathercity = str(weathercity)
-				language_value = config.osd.language.value.replace('_', '-').lower()
-				geodatalist = WI.getCitylist(weathercity, language_value)
-				# geodatalist = WI.getCitylist(weathercity, config.osd.language.value.replace('_', '-').lower())
-				if WI.error or geodatalist is None or len(geodatalist) == 0:
-					print("[WeatherSettingsViewNew] Error in module 'searchCity': %s" % WI.error)
-					# self["footnote"].setText(_("Error getting City ID"))
-					self.session.open(MessageBox, text=_("City '%s' not found! Please try another wording." % weathercity), type=MessageBox.TYPE_WARNING)
-				# elif len(geodatalist) == 1:
-					# self["footnote"].setText(_("Getting City ID Success"))
-					# self.saveGeoCode(geodatalist[0])
-				else:
-					self.citylist = []
-					for item in geodatalist:
-						lon = " [lon=%s" % item[1] if float(item[1]) != 0.0 else ""
-						lat = ", lat=%s]" % item[2] if float(item[2]) != 0.0 else ""
-						try:
-							# self.citylist.append(("%s%s%s" % (item[0], lon, lat), item[0], item[1], item[2]))
-							self.citylist.append((str(item[0]) + lon + lat, str(item[0]), str(item[1]), str(item[2])))
-						except Exception:
-							print("[WeatherSettingsViewNew] Error in module 'showMenu': faulty entry in resultlist.")
+        self.closeonsave = closesave
+        weatherhelper.searchLocation(weathercity, self.returnCityChoice, self.session)
 
-					# --------------------- hier ist der alte aufruf der choicebox
-					# self.session.openWithCallback(self.returnCityChoice, ChoiceBox, title=_("Select your location"), list=tuple(answer[1]))
-					self.citylisttest = self.citylist
-					self.testScreen = self.session.open(TestScreen, citylisttest=self.citylisttest, okCallback=self.testScreenOkCallback)
-					# selected_city_str = self.selected_city
-					# self.choiceIdxCallback(self.test_screen.selectCity())
+    def returnCityChoice(self, selected_city_str):
+        if not selected_city_str:
+            return
 
-	def testScreenOkCallback(self, selected_city_str):
-		self.choiceIdxCallback(selected_city_str)
+        try:
+            city_part, coords_part = selected_city_str.split('[', 1)
+            city_name = city_part.strip()
+            lon_str, lat_str = coords_part.replace(']', '').split(',')
+            lon = float(lon_str.replace('lon=', '').strip())
+            lat = float(lat_str.replace('lat=', '').strip())
 
-	def choiceIdxCallback(self, selected_city):
-		self.selected_city = selected_city
+            location = (
+                weatherhelper.reduceCityname(city_name),
+                lon,
+                lat
+            )
 
-		if len(self.selected_city) >= 4:
-			parts = self.selected_city.split(',')
-			city = parts[0]
-			longitude = ""
-			latitude = ""
-			for part in parts:
-				if 'lon=' in part:
-					longitude = part.split('=')[1].strip()
-				elif 'lat=' in part:
-					latitude = part.split('=')[1].strip((']'))
+            if getattr(self, 'addFavorite', False):
+                if not self.add2FavList(location):
+                    self.session.open(
+                        MessageBox,
+                        _("Location already in favorites"),
+                        MessageBox.TYPE_INFO,
+                        timeout=3
+                    )
+                self.addFavorite = False
+            else:
+                curr_idx = getattr(self, 'currindex', 0)
+                if curr_idx < len(getattr(self, 'newFavList', [])):
+                    self.newFavList[curr_idx] = location
 
-			if city and longitude and latitude:
-				self.saveGeoCode(city, longitude, latitude)
-		else:
-			logger.info("Die ausgewählte Stadt hat nicht genügend Informationen.")
+            if hasattr(self, 'updateFavoriteList'):
+                self.updateFavoriteList()
 
-	def saveGeoCode(self, city, longitude, latitude):
-		config.plugins.OAWeather.weathercity.value = city
-		config.plugins.OAWeather.owm_geocode.value = "%s,%s" % (longitude, latitude)
+            config.plugins.OAWeather.weathercity.value = city_name
+            config.plugins.OAWeather.owm_geocode.value = f"{lon},{lat}"
 
-		self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
-		self.checkcity = False
-		if self.closeonsave:
-			config.plugins.OAWeather.owm_geocode.save()
-			weatherhandler.reset()
-			# Setup.keySave(self)
-			self.keySave()
+            if getattr(self, 'closeonsave', False):
+                self.keySave()
 
-	def changedEntry(self):
-		for x in self.onChangedEntry:
-			x()
+        except ValueError as e:
+            logger.error(f"Error parsing city selection: {str(e)}")
+            self.session.open(
+                MessageBox,
+                _("Invalid location format"),
+                MessageBox.TYPE_ERROR,
+                timeout=3
+            )
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
+            self.session.open(
+                MessageBox,
+                _("Error processing location data"),
+                MessageBox.TYPE_ERROR,
+                timeout=3
+            )
 
-	def keyLeft(self):
-		ConfigListScreen.keyLeft(self)
-		self.createSetup()
+    def showError(self, message):
+        self.session.open(MessageBox, message, MessageBox.TYPE_WARNING)
 
-	def keyRight(self):
-		ConfigListScreen.keyRight(self)
-		self.createSetup()
+    def testScreenOkCallback(self, selected_city_str):
+        self.choiceIdxCallback(selected_city_str)
 
-	def keySelect(self):
-		if self.getCurrentItem() == config.plugins.OAWeather.weathercity:
-			self.checkcity = True
-		Setup.keySelect(self)
+    def choiceIdxCallback(self, selected_city):
+        self.selected_city = selected_city
 
-	def keySave(self):
-		weathercity = config.plugins.OAWeather.weathercity.value.split(",")[0]
-		if len(weathercity) < 3:
-			return
+        if len(self.selected_city) >= 4:
+            parts = self.selected_city.split(',')
+            city = parts[0]
+            longitude = ""
+            latitude = ""
+            for part in parts:
+                if 'lon=' in part:
+                    longitude = part.split('=')[1].strip()
+                elif 'lat=' in part:
+                    latitude = part.split('=')[1].strip((']'))
 
-		config.plugins.OAWeather.save()
-		config.save()
+            if city and longitude and latitude:
+                self.saveGeoCode(city, longitude, latitude)
+        else:
+            logger.info("Die ausgewählte Stadt hat nicht genügend Informationen.")
 
-		weatherhandler.reset()
-		super(WeatherSettingsViewNew, self).keySave()
+    def saveGeoCode(self, city, longitude, latitude):
+        config.plugins.OAWeather.weathercity.value = city
+        config.plugins.OAWeather.owm_geocode.value = "%s,%s" % (longitude, latitude)
 
-	def defaults(self, SAVE=False):
-		for x in self["config"].list:
-			if len(x) > 1:
-				self.setInputToDefault(x[1], SAVE)
-		self.setInputToDefault(config.plugins.OAWeather.owm_geocode, SAVE)
-		if self.session:
-			self.list = []
-			self.list.append(getConfigListEntry(_("Enabled :"), config.plugins.OAWeather.enabled))
-			if config.plugins.OAWeather.enabled.value:
-				self.list.append(getConfigListEntry(_("Weather service :"), config.plugins.OAWeather.weatherservice))
-				self.list.append(getConfigListEntry(_("Weather city name :"), config.plugins.OAWeather.weathercity))
-				self.list.append(getConfigListEntry(_("Weather API key :"), config.plugins.OAWeather.apikey))
-				self.list.append(getConfigListEntry(_("Temperature unit :"), config.plugins.OAWeather.tempUnit))
-				self.list.append(getConfigListEntry(_("Weather icon set :"), config.plugins.OAWeather.iconset))
-				self.list.append(getConfigListEntry(_("Weather icon night switch :"), config.plugins.OAWeather.nighticons))
-				self.list.append(getConfigListEntry(_("Refresh interval :"), config.plugins.OAWeather.refreshInterval))
-				self.list.append(getConfigListEntry(_("Cache data :"), config.plugins.OAWeather.cachedata))
-				self.list.append(getConfigListEntry(_("Enable Debug :"), config.plugins.OAWeather.debug))
-			self['config'].setList(self.list)
-			self['status'].setText(_("Standard fertig"))
+        self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
+        self.checkcity = False
+        if self.closeonsave:
+            config.plugins.OAWeather.owm_geocode.save()
+            weatherhandler.reset()
+            self.keySave()
 
-	def setInputToDefault(self, configItem, SAVE):
-		configItem.setValue(configItem.default)
-		if SAVE:
-			configItem.save()
+    def changedEntry(self):
+        for x in self.onChangedEntry:
+            x()
 
+    def keyLeft(self):
+        ConfigListScreen.keyLeft(self)
+        self.createSetup()
 
-class TestScreen(Screen):
-	skin = """
-			<screen name="TestScreen"   position="center,center" size="1200,650" backgroundColor="#00000000"  transparent="0"  >
-				<eLabel position="0,0" size="1200,650" backgroundColor="#00000000"    transparent="0" zPosition="0" />
-				<ePixmap position="10,590" zPosition="3" size="240,50" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/OAWeather/Images/red.png" transparent="1" alphatest="blend" />
-				<widget name="meinelist" position="100,20" size="1000,430" font="Regular;30" itemHeight="45"  backgroundColor="#00000000" foregroundColor="#00ffffff" transparent="0" zPosition="3" scrollbarMode="showOnDemand" />
-				<widget name="status" font="Regular; 25"  position="100,470" size="1000,40" foregroundColor ="#0000ff00" backgroundColor="#00000000" transparent="0"  zPosition="3" halign="center" valign="center" />
-				<widget source="key_red" render="Label" position="10,570" zPosition="5" size="240,50" font="Regular;30" halign="center" valign="center" backgroundColor="#00313040" foregroundColor="#00ffffff" transparent="1" />
-			</screen>
-			"""
+    def keyRight(self):
+        ConfigListScreen.keyRight(self)
+        self.createSetup()
 
-	def __init__(self, session, citylisttest, okCallback=None):
-		self.session = session
-		Screen.__init__(self, session)
-		self.citylisttest = citylisttest
-		self.okCallback = okCallback
-		self['meinelist'] = MenuList(citylisttest)
-		self.status = ""
-		self["status"] = Label()
-		self["actions"] = ActionMap(
-			["OkCancelActions", "ColorActions"],
-			{
-				"ok": self.selectCity,
-				"cancel": self.close,
-				"red": self.close,
-				"green": self.close,
-				"yellow": self.close
-			},
-			-1
-		)
-		self['key_red'] = Label(_('exit'))
-		self['status'].setText(_("Select the City and Press Ok"))
+    def keySelect(self):
+        if self.getCurrentItem() == config.plugins.OAWeather.weathercity:
+            self.checkcity = True
+        Setup.keySelect(self)
 
-	def selectCity(self):
-		selected_city_tuple = self['meinelist'].l.getCurrentSelection()
-		if selected_city_tuple:
-			selected_city = selected_city_tuple[0]
-			self.selected_city = selected_city
-			if self.okCallback is not None:
-				self.okCallback(selected_city)
-			self.close()
+    def keySave(self):
+        weathercity = config.plugins.OAWeather.weathercity.value.split(",")[0]
+        if len(weathercity) < 3:
+            return
+
+        config.plugins.OAWeather.save()
+        config.save()
+
+        weatherhandler.reset()
+        super(WeatherSettingsViewNew, self).keySave()
+
+    def defaults(self, SAVE=False):
+        for x in self["config"].list:
+            if len(x) > 1:
+                self.setInputToDefault(x[1], SAVE)
+        self.setInputToDefault(config.plugins.OAWeather.owm_geocode, SAVE)
+        if self.session:
+            self.list = []
+            self.list.append(getConfigListEntry(_("Enabled :"), config.plugins.OAWeather.enabled))
+            if config.plugins.OAWeather.enabled.value:
+                self.list.append(getConfigListEntry(_("Weather service :"), config.plugins.OAWeather.weatherservice))
+                self.list.append(getConfigListEntry(_("Weather city name :"), config.plugins.OAWeather.weathercity))
+                self.list.append(getConfigListEntry(_("Weather API key :"), config.plugins.OAWeather.apikey))
+                self.list.append(getConfigListEntry(_("Temperature unit :"), config.plugins.OAWeather.tempUnit))
+                self.list.append(getConfigListEntry(_("Weather icon set :"), config.plugins.OAWeather.iconset))
+                self.list.append(getConfigListEntry(_("Weather icon night switch :"), config.plugins.OAWeather.nighticons))
+                self.list.append(getConfigListEntry(_("Refresh interval :"), config.plugins.OAWeather.refreshInterval))
+                self.list.append(getConfigListEntry(_("Cache data :"), config.plugins.OAWeather.cachedata))
+                self.list.append(getConfigListEntry(_("Enable Debug :"), config.plugins.OAWeather.debug))
+            self['config'].setList(self.list)
+            self['status'].setText(_("Standard fertig"))
+
+    def setInputToDefault(self, configItem, SAVE):
+        configItem.setValue(configItem.default)
+        if SAVE:
+            configItem.save()
+
+    def addCurrentToFavorites(self):
+        try:
+            city = config.plugins.OAWeather.weathercity.value
+            lon, lat = config.plugins.OAWeather.owm_geocode.value.split(',')
+            location = (city, float(lon), float(lat))
+
+            if weatherhelper.addFavorite(location):
+                self.session.open(
+                    MessageBox,
+                    _("Location added to favorites"),
+                    MessageBox.TYPE_INFO
+                )
+            else:
+                self.session.open(
+                    MessageBox,
+                    _("Location already in favorites"),
+                    MessageBox.TYPE_WARNING
+                )
+
+        except Exception as e:
+            logger.error(f"Error adding favorite: {str(e)}")
+            self.session.open(
+                MessageBox,
+                _("Error saving location"),
+                MessageBox.TYPE_ERROR
+            )
 
 
 class WeatherHandler():
-	logger.info("Using WeatherHandler")
+    logger.info("Using WeatherHandler")
 
-	def __init__(self):
-		self.session = None
-		modes = {"MSN": "msn", "openweather": "owm", "OpenMeteo": "omw"}
-		mode = modes.get(config.plugins.OAWeather.weatherservice.value, "msn")
-		self.WI = Weatherinfo(mode, config.plugins.OAWeather.apikey.value)
-		# apy_key = config.plugins.OAWeather.apikey.value
-		# self.geocode = config.plugins.OAWeather.owm_geocode.value.split(",")
-		self.geocode = self.getValidGeocode()
-		self.currLocation = config.plugins.OAWeather.weatherlocation.value
-		self.weathercity = None
-		self.trialcounter = 0
-		self.currentWeatherDataValid = 3  # 0= green (data available), 1= yellow (still working), 2= red (no data available, wait on next refresh) 3=startup
-		self.refreshTimer = eTimer()
-		self.refreshTimer.callback.append(self.refreshWeatherData)
-		self.weatherDict = {}
-		self.fullWeatherDict = {}
-		self.onUpdate = []
-		self.refreshCallback = None
-		self.skydirs = {"N": _("North"), "NE": _("Northeast"), "E": _("East"), "SE": _("Southeast"), "S": _("South"), "SW": _("Southwest"), "W": _("West"), "NW": _("Northwest")}
+    def __init__(self):
+        self.session = None
+        modes = {"MSN": "msn", "openweather": "owm", "OpenMeteo": "omw"}
+        mode = modes.get(config.plugins.OAWeather.weatherservice.value, "msn")
+        self.WI = Weatherinfo(mode, config.plugins.OAWeather.apikey.value)
+        # apy_key = config.plugins.OAWeather.apikey.value
+        # self.geocode = config.plugins.OAWeather.owm_geocode.value.split(",")
+        self.geocode = self.getValidGeocode()
+        # self.currLocation = config.plugins.OAWeather.weatherlocation.value
+        self.currLocation = self.getValidLocation()
+        self.weathercity = None
+        self.trialcounter = 0
+        self.currentWeatherDataValid = 3  # 0= green (data available), 1= yellow (still working), 2= red (no data available, wait on next refresh) 3=startup
+        self.refreshTimer = eTimer()
+        self.refreshTimer.callback.append(self.refreshWeatherData)
+        self.weatherDict = {}
+        self.fullWeatherDict = {}
+        self.onUpdate = []
+        self.refreshCallback = None
+        self.skydirs = {"N": _("North"), "NE": _("Northeast"), "E": _("East"), "SE": _("Southeast"), "S": _("South"), "SW": _("Southwest"), "W": _("West"), "NW": _("Northwest")}
 
-	def getValidGeocode(self):
-		"""Get valid coordinates or use default ones"""
-		try:
-			parts = config.plugins.OAWeather.owm_geocode.value.split(",")
-			if len(parts) == 2:
-				return [float(parts[0]), float(parts[1])]
-		except:
-			pass
-		return [8.68417, 50.11552]
+    def getValidGeocode(self):
+        """Get valid coordinates or use default ones"""
+        try:
+            parts = config.plugins.OAWeather.owm_geocode.value.split(",")
+            if len(parts) == 2:
+                return [float(parts[0]), float(parts[1])]
+        except:
+            pass
+        return [8.68417, 50.11552]
 
-	def sessionStart(self, session):
-		self.session = session
-		weatherhelper.updateConfigChoices()
-		self.getCacheData()
+    def getValidLocation(self):
+        """Get valid location from config or use default"""
+        try:
+            location = config.plugins.OAWeather.weatherlocation.value
+            if location and len(location) == 3:
+                return location
+        except:
+            pass
+        return weatherhelper.locationDefault
 
-	def writeData(self, data):
-		self.currentWeatherDataValid = 0
-		self.weatherDict = data
-		for callback in self.onUpdate:
-			callback(data)
-		seconds = int(config.plugins.OAWeather.refreshInterval.value) * 60
-		self.refreshTimer.start(seconds * 1000, True)
+    def sessionStart(self, session):
+        self.session = session
+        weatherhelper.updateConfigChoices()
+        self.getCacheData()
 
-	def getData(self):
-		return self.weatherDict
+    def writeData(self, data):
+        self.currentWeatherDataValid = 0
+        self.weatherDict = data
+        for callback in self.onUpdate:
+            callback(data)
+        seconds = int(config.plugins.OAWeather.refreshInterval.value) * 60
+        self.refreshTimer.start(seconds * 1000, True)
 
-	def getFulldata(self):
-		return self.fullWeatherDict
+    def getData(self):
+        return self.weatherDict
 
-	if sys.version_info[0] >= 3:
-		logger.info("Python 3 getValid")
+    def getFulldata(self):
+        return self.fullWeatherDict
 
-		def getValid(self):
-			return self.currentWeatherDataValid
-	else:
+    if sys.version_info[0] >= 3:
+        logger.info("Python 3 getValid")
 
-		def getValid(self):
-			return self.currentWeatherDataValid
+        def getValid(self):
+            return self.currentWeatherDataValid
+    else:
 
-	if sys.version_info[0] >= 3:
-		logger.info("Python 3 getSkydirs")
+        def getValid(self):
+            return self.currentWeatherDataValid
 
-		def getSkydirs(self):
-			return self.skydirs
-	else:
-		logger.info("Python 2 get skydirs")
+    if sys.version_info[0] >= 3:
+        logger.info("Python 3 getSkydirs")
 
-		def getSkydirs(self):
-			return self.skydirs
+        def getSkydirs(self):
+            return self.skydirs
+    else:
+        logger.info("Python 2 get skydirs")
 
-	def getCacheData(self):
-		cacheminutes = int(config.plugins.OAWeather.cachedata.value)
-		if cacheminutes and isfile(CACHEFILE):
-			timedelta = (time() - getmtime(CACHEFILE)) / 60
-			if cacheminutes > timedelta:
-				with open(CACHEFILE, "rb") as fd:
-					cache_data = pickle.load(fd)
-				self.writeData(cache_data)
-				return
-		self.refreshTimer.start(3000, True)
+        def getSkydirs(self):
+            return self.skydirs
 
-	def getCurrLocation(self):
-		return self.currLocation
+    def getCacheData(self):
+        cacheminutes = int(config.plugins.OAWeather.cachedata.value)
+        if cacheminutes and isfile(CACHEFILE):
+            timedelta = (time() - getmtime(CACHEFILE)) / 60
+            if cacheminutes > timedelta:
+                with open(CACHEFILE, "rb") as fd:
+                    cache_data = pickle.load(fd)
+                self.writeData(cache_data)
+                return
+        self.refreshTimer.start(3000, True)
 
-	def setCurrLocation(self, currLocation):
-		self.currLocation = currLocation
+    def getCurrLocation(self):
+        return self.currLocation
 
-	def refreshWeatherData(self, entry=None):
-		self.refreshTimer.stop()
-		if config.misc.firstrun.value:  # don't refresh on firstrun try again after 10 seconds
-			self.refreshTimer.start(600000, True)
-			return
-		if config.plugins.OAWeather.enabled.value:
-			# Get the geocode from the configuration
-			location = config.plugins.OAWeather.weatherlocation.value
-			if location and len(location) == 3:
-				weathercity, lon, lat = location
-				geodata = (weathercity, lon, lat)
-			else:
-				# Fallback to default if location is invalid
-				logger.error("Invalid location configuration, using default")
-				geodata = weatherhelper.locationDefault
+    def setCurrLocation(self, currLocation):
+        self.currLocation = currLocation
 
-			# Use the geodata directly
-			language = config.osd.language.value.lower().replace('_', '-')
-			unit = "imperial" if config.plugins.OAWeather.tempUnit.value == "Fahrenheit" else "metric"
+    def refreshWeatherData(self, entry=None):
+        self.refreshTimer.stop()
+        if config.misc.firstrun.value:  # don't refresh on firstrun try again after 10 seconds
+            self.refreshTimer.start(600000, True)
+            return
+        if config.plugins.OAWeather.enabled.value:
+            # Get the geocode from the configuration
+            location = config.plugins.OAWeather.weatherlocation.value
+            if location and len(location) == 3:
+                weathercity, lon, lat = location
+                geodata = (weathercity, lon, lat)
+            else:
+                # Fallback to default if location is invalid
+                logger.error("Invalid location configuration, using default")
+                geodata = weatherhelper.locationDefault
 
-			# Start the weather info retrieval
-			self.WI.start(
-				geodata=geodata,
-				cityID=None,
-				units=unit,
-				scheme=language,
-				reduced=True,
-				callback=self.refreshWeatherDataCallback
-			)
+            # Use the geodata directly
+            language = config.osd.language.value.lower().replace('_', '-')
+            unit = "imperial" if config.plugins.OAWeather.tempUnit.value == "Fahrenheit" else "metric"
 
-	def refreshWeatherDataCallback(self, data, error):
-		if error or data is None:
-			self.trialcounter += 1
-			if self.trialcounter < 2:
-				print("[%s] lookup for city '%s' paused, try again in 10 secs..." % (MODULE_NAME, self.weathercity))
-				self.currentWeatherDataValid = 1
-				self.refreshTimer.start(10000, True)
-			elif self.trialcounter > 5:
-				print("[%s] lookup for city '%s' paused 1 h, to many errors..." % (MODULE_NAME, self.weathercity))
-				self.currentWeatherDataValid = 2
-				self.refreshTimer.start(3600000, True)
-			else:
-				print("[%s] lookup for city '%s' paused 5 mins, to many errors..." % (MODULE_NAME, self.weathercity))
-				self.currentWeatherDataValid = 2
-				self.refreshTimer.start(300000, True)
-			return
-		self.writeData(data)
-		self.fullWeatherDict = self.WI.info
+            # Start the weather info retrieval
+            self.WI.start(
+                geodata=geodata,
+                cityID=None,
+                units=unit,
+                scheme=language,
+                reduced=True,
+                callback=self.refreshWeatherDataCallback
+            )
 
-		# TODO write cache only on close
-		if config.plugins.OAWeather.cachedata.value and self.currLocation == config.plugins.OAWeather.weatherlocation.value:
-			with open(CACHEFILE, "wb") as fd:
-				pickle.dump(data, fd, -1)
-		if self.refreshCallback:
-			self.refreshCallback()
-			self.refreshCallback = None
+    def refreshWeatherDataCallback(self, data, error):
+        if error or data is None:
+            self.trialcounter += 1
+            if self.trialcounter < 2:
+                print("[%s] lookup for city '%s' paused, try again in 10 secs..." % (MODULE_NAME, self.weathercity))
+                self.currentWeatherDataValid = 1
+                self.refreshTimer.start(10000, True)
+            elif self.trialcounter > 5:
+                print("[%s] lookup for city '%s' paused 1 h, to many errors..." % (MODULE_NAME, self.weathercity))
+                self.currentWeatherDataValid = 2
+                self.refreshTimer.start(3600000, True)
+            else:
+                print("[%s] lookup for city '%s' paused 5 mins, to many errors..." % (MODULE_NAME, self.weathercity))
+                self.currentWeatherDataValid = 2
+                self.refreshTimer.start(300000, True)
+            return
+        self.writeData(data)
+        self.fullWeatherDict = self.WI.info
 
-	def reset(self, newLocation=None, callback=None):
-		self.refreshCallback = callback
-		if newLocation:
-			self.currLocation = newLocation
-			config.plugins.OAWeather.weatherlocation.value = newLocation
-			config.plugins.OAWeather.weatherlocation.save()
+        # TODO write cache only on close
+        if config.plugins.OAWeather.cachedata.value and self.currLocation == config.plugins.OAWeather.weatherlocation.value:
+            with open(CACHEFILE, "wb") as fd:
+                pickle.dump(data, fd, -1)
+        if self.refreshCallback:
+            self.refreshCallback()
+            self.refreshCallback = None
 
-		self.refreshTimer.stop()
-		if isfile(CACHEFILE):
-			remove(CACHEFILE)
+    def reset(self, newLocation=None, callback=None):
+        self.refreshCallback = callback
+        if newLocation:
+            self.currLocation = newLocation
+            config.plugins.OAWeather.weatherlocation.value = newLocation
+            config.plugins.OAWeather.weatherlocation.save()
 
-		modes = {"MSN": "msn", "openweather": "owm", "OpenMeteo": "omw"}
-		mode = modes.get(config.plugins.OAWeather.weatherservice.value, "msn")
-		self.WI.setmode(mode, config.plugins.OAWeather.apikey.value)
+        self.refreshTimer.stop()
+        if isfile(CACHEFILE):
+            remove(CACHEFILE)
 
-		self.refreshWeatherData()
+        modes = {"MSN": "msn", "openweather": "owm", "OpenMeteo": "omw"}
+        mode = modes.get(config.plugins.OAWeather.weatherservice.value, "msn")
+        self.WI.setmode(mode, config.plugins.OAWeather.apikey.value)
 
-		if self.session:
-			iconpath = config.plugins.OAWeather.iconset.value
-			iconpath = join(ICONSETROOT, iconpath) if iconpath else join(PLUGINPATH, "Icons")
-			self.session.screen["OAWeather"].iconpath = iconpath
+        self.refreshWeatherData()
+
+        if self.session:
+            iconpath = config.plugins.OAWeather.iconset.value
+            iconpath = join(ICONSETROOT, iconpath) if iconpath else join(PLUGINPATH, "Icons")
+            self.session.screen["OAWeather"].iconpath = iconpath
 
 
 def main(session, **kwargs):
-	session.open(OAWeatherPlugin)
+    session.open(OAWeatherPlugin)
 
 
 def setup(session, **kwargs):
-	session.open(WeatherSettingsViewNew)
+    session.open(WeatherSettingsViewNew)
 
 
 def sessionstart(session, **kwargs):
-	from Components.Sources.OAWeather import OAWeather
-	session.screen["OAWeather"] = OAWeather()
-	session.screen["OAWeather"].precipitationtext = _("Precipitation")
-	session.screen["OAWeather"].humiditytext = _("Humidity")
-	session.screen["OAWeather"].feelsliketext = _("Feels like")
-	session.screen["OAWeather"].pluginpath = PLUGINPATH
-	iconpath = config.plugins.OAWeather.iconset.value
-	if iconpath:
-		iconpath = join(ICONSETROOT, iconpath)
-	else:
-		iconpath = join(PLUGINPATH, "Icons")
-	session.screen["OAWeather"].iconpath = iconpath
-	weatherhandler.sessionStart(session)
+    from Components.Sources.OAWeather import OAWeather
+    session.screen["OAWeather"] = OAWeather()
+    session.screen["OAWeather"].precipitationtext = _("Precipitation")
+    session.screen["OAWeather"].humiditytext = _("Humidity")
+    session.screen["OAWeather"].feelsliketext = _("Feels like")
+    session.screen["OAWeather"].pluginpath = PLUGINPATH
+    iconpath = config.plugins.OAWeather.iconset.value
+    if iconpath:
+        iconpath = join(ICONSETROOT, iconpath)
+    else:
+        iconpath = join(PLUGINPATH, "Icons")
+    session.screen["OAWeather"].iconpath = iconpath
+    weatherhandler.sessionStart(session)
 
 
 def Plugins(**kwargs):
-	pluginList = []
-	pluginList.append(PluginDescriptor(name="OAWeather", where=[PluginDescriptor.WHERE_SESSIONSTART], fnc=sessionstart, needsRestart=False))
-	pluginList.append(PluginDescriptor(name=_("Weather Plugin"), description=_("Show Weather Forecast"), icon="plugin.png", where=[PluginDescriptor.WHERE_PLUGINMENU], fnc=main))
-	return pluginList
+    pluginList = []
+    pluginList.append(PluginDescriptor(name="OAWeather", where=[PluginDescriptor.WHERE_SESSIONSTART], fnc=sessionstart, needsRestart=False))
+    pluginList.append(PluginDescriptor(name=_("Weather Plugin"), description=_("Show Weather Forecast"), icon="plugin.png", where=[PluginDescriptor.WHERE_PLUGINMENU], fnc=main))
+    return pluginList
 
 
 class OAWeatherPlugin(Screen):
 
-	def __init__(self, session):
-		logger.info("OAWeatherPlugin initialized")
-		params = {
-			"picpath": join(PLUGINPATH, "Images")
-		}
-		skintext = ""
+    def __init__(self, session):
+        logger.info("OAWeatherPlugin initialized")
+        params = {
+            "picpath": join(PLUGINPATH, "Images")
+        }
+        skintext = ""
 
-		if screenwidth.width() >= 1920:
-			xml = parse(join(PLUGINPATH, "skinfhd.xml")).getroot()
-		elif screenwidth.width() <= 1280:
-			xml = parse(join(PLUGINPATH, "skin.xml")).getroot()
+        if screenwidth.width() >= 1920:
+            xml = parse(join(PLUGINPATH, "skinfhd.xml")).getroot()
+        elif screenwidth.width() <= 1280:
+            xml = parse(join(PLUGINPATH, "skin.xml")).getroot()
 
-		for screen in xml.findall('screen'):
-			if screen.get("name") == "OAWeatherPlugin":
-				skintext = tostring(screen).decode()
-				for key in params.keys():
-					try:
-						skintext = skintext.replace('{%s}' % key, params[key])
-					except Exception as e:
-						print("%s@key=%s" % (str(e), key))
-				break
-		self.skin = skintext
+        for screen in xml.findall('screen'):
+            if screen.get("name") == "OAWeatherPlugin":
+                skintext = tostring(screen).decode()
+                for key in params.keys():
+                    try:
+                        skintext = skintext.replace('{%s}' % key, params[key])
+                    except Exception as e:
+                        print("%s@key=%s" % (str(e), key))
+                break
+        self.skin = skintext
 
-		Screen.__init__(self, session)
+        Screen.__init__(self, session)
 
-		try:
-			weatherLocation = config.plugins.OAWeather.weatherlocation.value
-			self.currFavIdx = weatherhelper.favoriteList.index(weatherLocation) if weatherLocation in weatherhelper.favoriteList else 0
-		except:
-			weatherLocation = weatherhelper.locationDefault
-			self.currFavIdx = 0
+        try:
+            weatherLocation = config.plugins.OAWeather.weatherlocation.value
+            # Ensure the saved location exists in favorites
+            if weatherLocation in weatherhelper.favoriteList:
+                self.currFavIdx = weatherhelper.favoriteList.index(weatherLocation)
+            else:
+                # If not, use first favorite or default
+                self.currFavIdx = 0 if weatherhelper.favoriteList else 0
+                config.plugins.OAWeather.weatherlocation.value = weatherhelper.favoriteList[self.currFavIdx] if weatherhelper.favoriteList else weatherhelper.locationDefault
+                config.plugins.OAWeather.weatherlocation.save()
+        except:
+            weatherLocation = weatherhelper.locationDefault
+            self.currFavIdx = 0
 
-		Neue_keymap = '/usr/lib/enigma2/python/Plugins/Extensions/OAWeather/keymap.xml'
-		readKeymap(Neue_keymap)
-		self.data = {}
-		self.na = _("n/a")
-		self.title = _("Weather Plugin")
-		self["key_blue"] = StaticText(_("Menu"))
-		self["statustext"] = StaticText()
-		self["description"] = StaticText(_('Press Key Green or Menu for Setup'))
-		self["update"] = Label(_("Update"))
-		self["current"] = Label(_("Current Weather"))
-		self["today"] = StaticText(_("Today"))
-		self["key_red"] = StaticText(_("Exit"))
-		self["key_green"] = StaticText(_("Chose favorite"))
-		self["key_yellow"] = StaticText(_("Previous favorite"))
-		self["key_blue"] = StaticText(_("Next favorite"))
-		self["key_ok"] = StaticText(_("View details"))
-		self["key_menu"] = StaticText(_("Settings"))
-		self["actions"] = ActionMap(
-			["OAWeatherActions", "ColorActions", "InfoActions"],
-			{
-				"ok": self.keyOk,
-				"cancel": self.close,
-				"red": self.close,
-				"yellow": self.favoriteUp,
-				"blue": self.favoriteDown,
-				"green": self.favoriteChoice,
-				"menu": self.config,
-				"info": self.keyOk
-			},
-			-1
-		)
-		for i in range(1, 6):
-			self["weekday%s_temp" % i] = StaticText()
+        Neue_keymap = '/usr/lib/enigma2/python/Plugins/Extensions/OAWeather/keymap.xml'
+        readKeymap(Neue_keymap)
+        self.data = {}
+        self.na = _("n/a")
+        self.title = _("Weather Plugin")
+        self["key_blue"] = StaticText(_("Menu"))
+        self["statustext"] = StaticText()
+        self["description"] = Label(_('GREEN: MANAGEMENT FAVORITES | MENU: SETUP | BLUE: HOME'))
+        self["update"] = Label(_("Update"))
+        self["current"] = Label(_("Current Weather"))
+        self["today"] = StaticText(_("Today"))
+        self["key_red"] = StaticText(_("Exit"))
+        self["key_green"] = StaticText(_("Chose favorite"))
+        self["key_yellow"] = StaticText(_("Previous favorite"))
+        self["key_blue"] = StaticText(_("Next favorite"))
+        self["key_ok"] = StaticText(_("View details"))
+        self["key_menu"] = StaticText(_("Settings"))
+        self["actions"] = ActionMap(
+            ["OAWeatherActions", "ColorActions", "InfoActions"],
+            {
+                "ok": self.keyOk,
+                "cancel": self.close,
+                "red": self.close,
+                "yellow": self.favoriteUp,
+                "blue": self.favoriteDown,
+                "green": self.favoriteChoice,
+                "menu": self.config,
+                "info": self.keyOk
+            },
+            -1
+        )
+        for i in range(1, 6):
+            self["weekday%s_temp" % i] = StaticText()
 
-		self.onLayoutFinish.append(self.startRun)
+        self.onLayoutFinish.append(self.startRun)
 
-	def startRun(self):
-		if not weatherhandler.getData() or weatherhandler.getValid() != 0:
-			self["statustext"].text = _("Loading weather data...")
-		else:
-			self.data = weatherhandler.getData() or {}
-			self.getWeatherDataCallback()
+    def startRun(self):
+        if not weatherhandler.getData() or weatherhandler.getValid() != 0:
+            self["statustext"].text = _("Loading weather data...")
+        else:
+            self.data = weatherhandler.getData() or {}
+            self.getWeatherDataCallback()
 
-		self.checkDataTimer = eTimer()
-		self.checkDataTimer.callback.append(self.checkDataUpdate)
-		self.checkDataTimer.start(1000)
+        self.checkDataTimer = eTimer()
+        self.checkDataTimer.callback.append(self.checkDataUpdate)
+        self.checkDataTimer.start(1000)
 
-	def checkDataUpdate(self):
-		if weatherhandler.getValid() == 0:
-			self.data = weatherhandler.getData()
-			self.getWeatherDataCallback()
-			self.checkDataTimer.stop()
-		elif weatherhandler.getValid() == 2:
-			self.error(_("Weather data unavailable"))
-			self.checkDataTimer.stop()
+    def checkDataUpdate(self):
+        if weatherhandler.getValid() == 0:
+            self.data = weatherhandler.getData()
+            self.getWeatherDataCallback()
+            self.checkDataTimer.stop()
+        elif weatherhandler.getValid() == 2:
+            self.error(_("Weather data unavailable"))
+            self.checkDataTimer.stop()
 
-	def clearFields(self):
-		for idx in range(1, 6):
-			self["weekday%s_temp" % idx].text = ""
+    def clearFields(self):
+        for idx in range(1, 6):
+            self["weekday%s_temp" % idx].text = ""
 
-	def getVal(self, key: str):
-		return self.data.get(key, self.na) if self.data else self.na
+    def getVal(self, key: str):
+        return self.data.get(key, self.na) if self.data else self.na
 
-	def getCurrentVal(self, key: str, default: str = _("n/a")):
-		value = default
-		if self.data and "current" in self.data:
-			current = self.data.get("current", {})
-			if key in current:
-				value = current.get(key, default)
-		return value
+    def getCurrentVal(self, key: str, default: str = _("n/a")):
+        value = default
+        if self.data and "current" in self.data:
+            current = self.data.get("current", {})
+            if key in current:
+                value = current.get(key, default)
+        return value
 
-	def getWeatherDataCallback(self):
-		self["statustext"].text = ""
-		forecast = self.data.get("forecast", {})
-		tempunit = self.data.get("tempunit", self.na)
-		for day in range(1, 6):
-			item = forecast.get(day, {})
-			lowTemp = item.get("minTemp", "")
-			highTemp = item.get("maxTemp", "")
-			text = item.get("text", "")
-			self[f"weekday{day}_temp"].text = "%s %s|%s %s\n%s" % (highTemp, tempunit, lowTemp, tempunit, text)
+    def getWeatherDataCallback(self):
+        self["statustext"].text = ""
+        forecast = self.data.get("forecast", {})
+        tempunit = self.data.get("tempunit", self.na)
+        for day in range(1, 6):
+            item = forecast.get(day, {})
+            lowTemp = item.get("minTemp", "")
+            highTemp = item.get("maxTemp", "")
+            text = item.get("text", "")
+            self[f"weekday{day}_temp"].text = "%s %s|%s %s\n%s" % (highTemp, tempunit, lowTemp, tempunit, text)
 
-	def keyOk(self):
-		if weatherhelper.favoriteList and weatherhandler.WI.getDataReady():
-			self.session.open(OAWeatherDetailview, weatherhelper.favoriteList[self.currFavIdx])
+    def keyOk(self):
+        if weatherhelper.favoriteList and weatherhandler.getValid() == 0:
+            self.session.open(OAWeatherDetailview, weatherhelper.favoriteList[self.currFavIdx])
 
-	def favoriteUp(self):
-		if weatherhelper.favoriteList:
-			self.currFavIdx = (self.currFavIdx - 1) % len(weatherhelper.favoriteList)
-			callInThread(weatherhandler.reset, weatherhelper.favoriteList[self.currFavIdx], self.configFinished)
+    def favoriteUp(self):
+        if weatherhelper.favoriteList:
+            self.currFavIdx = (self.currFavIdx - 1) % len(weatherhelper.favoriteList)
+            callInThread(weatherhandler.reset, weatherhelper.favoriteList[self.currFavIdx], self.configFinished)
 
-	def favoriteDown(self):
-		if weatherhelper.favoriteList:
-			self.currFavIdx = (self.currFavIdx + 1) % len(weatherhelper.favoriteList)
-			callInThread(weatherhandler.reset, weatherhelper.favoriteList[self.currFavIdx], self.configFinished)
+    def favoriteDown(self):
+        if weatherhelper.favoriteList:
+            self.currFavIdx = (self.currFavIdx + 1) % len(weatherhelper.favoriteList)
+            callInThread(weatherhandler.reset, weatherhelper.favoriteList[self.currFavIdx], self.configFinished)
 
-	def favoriteChoice(self):
-		choiceList = [(item[0], item) for item in weatherhelper.favoriteList]
-		self.session.openWithCallback(self.returnFavoriteChoice, ChoiceBox, title=_("Select desired location"), list=choiceList)
+    def favoriteChoice(self):
+        """Opens the complete favorite management screen"""
+        self.session.openWithCallback(
+            self.favoriteManagementClosed,
+            OAWeatherFavorites
+        )
 
-	def returnFavoriteChoice(self, favorite):
-		if favorite is not None:
-			selected_location = favorite[1]
-			logger.info(f"Selected location: {selected_location[0]}")
+    def favoriteManagementClosed(self, result=None):
+        """Callback when the favorite management screen is closed"""
+        if result:
+            # Update config with selected location
+            config.plugins.OAWeather.weathercity.value = result[0]
+            config.plugins.OAWeather.owm_geocode.value = f"{result[1]},{result[2]}"
+            config.plugins.OAWeather.weatherlocation.value = result
+            config.plugins.OAWeather.save()
 
-			if weatherhelper.addFavorite(selected_location):
-				logger.info("Favorite added successfully")
-			else:
-				logger.info("Favorite already exists")
+            # Reset weather data
+            callInThread(weatherhandler.reset, result, self.configFinished)
 
-			config.plugins.OAWeather.weatherlocation.value = selected_location
-			config.plugins.OAWeather.weatherlocation.save()
-			logger.info(f"Current location set to: {selected_location[0]}")
+    def returnFavoriteChoice(self, favorite):
+        weatherhelper.handleFavoriteSelection(favorite, self.configFinished)
 
-			callInThread(weatherhandler.reset, selected_location, self.configFinished)
+    def saveConfig(self):
+        config.plugins.OAWeather.save()
+        config.save()
 
-	def saveConfig(self):
-		config.plugins.OAWeather.save()
-		config.save()
+    def config(self):
+        self.session.openWithCallback(self.configFinished, WeatherSettingsViewNew)
 
-	def config(self):
-		self.session.openWithCallback(self.configFinished, WeatherSettingsViewNew)
+    def configFinished(self, result=None):
+        self.clearFields()
+        weatherhandler.reset()
+        self.startRun()
 
-	def configFinished(self, result=None):
-		self.clearFields()
-		weatherhandler.reset()
-		self.startRun()
-
-	def error(self, errortext):
-		self.clearFields()
-		self["statustext"].text = errortext
+    def error(self, errortext):
+        self.clearFields()
+        self["statustext"].text = errortext
 
 
 class OAWeatherDetailFrame(Screen):
-	def __init__(self, session):
-		self.skin = weatherhelper.loadSkin("OAWeatherDetailFrame")
-		Screen.__init__(self, session)
-		self.widgets = (
-			"time", "pressure", "temp", "feels", "humid", "precip", "windspeed",
-			"winddir", "windgusts", "uvindex", "visibility", "shortdesc", "longdesc"
-		)
-		for widget in self.widgets:
-			self[widget] = StaticText()
-		self["icon"] = Pixmap()
+    def __init__(self, session):
+        self.skin = weatherhelper.loadSkin("OAWeatherDetailFrame")
+        Screen.__init__(self, session)
+        self.widgets = (
+            "time", "pressure", "temp", "feels", "humid", "precip", "windspeed",
+            "winddir", "windgusts", "uvindex", "visibility", "shortdesc", "longdesc"
+        )
+        for widget in self.widgets:
+            self[widget] = StaticText()
+        self["icon"] = Pixmap()
 
-	def showFrame(self):
-		self.show()
+    def showFrame(self):
+        self.show()
 
-	def updateFrame(self, dataList):
-		try:
-			widgets = (
-				"time", "pressure", "temp", "feels", "humid", "precip", "windspeed",
-				"winddir", "windgusts", "uvindex", "visibility", "shortdesc", "longdesc"
-			)
+    def updateFrame(self, dataList):
+        try:
+            widgets = (
+                "time", "pressure", "temp", "feels", "humid", "precip", "windspeed",
+                "winddir", "windgusts", "uvindex", "visibility", "shortdesc", "longdesc"
+            )
 
-			# Ensure we have at least 14 elements
-			if not dataList or len(dataList) < 14:
-				dataList = [_("N/A")] * 14
+            # Ensure we have at least 14 elements
+            if not dataList or len(dataList) < 14:
+                dataList = [_("N/A")] * 14
 
-			for index, widget in enumerate(widgets):
-				value = dataList[index] if index < len(dataList) else _("N/A")
-				self[widget].setText(str(value))
+            for index, widget in enumerate(widgets):
+                value = dataList[index] if index < len(dataList) else _("N/A")
+                self[widget].setText(str(value))
 
-			icon = dataList[13] if len(dataList) > 13 else None
-			self["icon"].instance.setPixmap(icon)
-			self.showFrame()
-		except Exception as e:
-			logger.error(f"Error updating detail frame: {str(e)}")
+            icon = dataList[13] if len(dataList) > 13 else None
+            self["icon"].instance.setPixmap(icon)
+            self.showFrame()
+        except Exception as e:
+            logger.error(f"Error updating detail frame: {str(e)}")
 
-	def hideFrame(self):
-		self.hide()
+    def hideFrame(self):
+        self.hide()
 
 
 class OAWeatherDetailview(Screen):
-	YAHOOnightswitch = {
-		"3": "47", "4": "47", "11": "45", "12": "45", "13": "46", "14": "46", "15": "46", "16": "46", "28": "27",
-		"30": "29", "32": "31", "34": "33", "37": "47", "38": "47", "40": "45", "41": "46", "42": "46", "43": "46"
-	}
-	YAHOOdayswitch = {"27": "28", "29": "30", "31": "32", "33": "34", "45": "39", "46": "16", "47": "4"}
+    YAHOOnightswitch = {
+        "3": "47", "4": "47", "11": "45", "12": "45", "13": "46", "14": "46", "15": "46", "16": "46", "28": "27",
+        "30": "29", "32": "31", "34": "33", "37": "47", "38": "47", "40": "45", "41": "46", "42": "46", "43": "46"
+    }
+    YAHOOdayswitch = {"27": "28", "29": "30", "31": "32", "33": "34", "45": "39", "46": "16", "47": "4"}
 
-	def __init__(self, session, currlocation):
-		self.skin = weatherhelper.loadSkin("OAWeatherDetailview")
-		Screen.__init__(self, session)
-		self.detailFrame = self.session.instantiateDialog(OAWeatherDetailFrame)
-		self.detailFrameActive = False
-		self.currFavIdx = weatherhelper.favoriteList.index(currlocation) if currlocation in weatherhelper.favoriteList else 0
-		self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
+    def __init__(self, session, currlocation):
+        self.skin = weatherhelper.loadSkin("OAWeatherDetailview")
+        Screen.__init__(self, session)
+        self.detailFrame = self.session.instantiateDialog(OAWeatherDetailFrame)
+        self.detailFrameActive = False
+        self.currFavIdx = weatherhelper.favoriteList.index(currlocation) if currlocation in weatherhelper.favoriteList else 0
+        self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
 
-		self.detailLevels = config.plugins.OAWeather.detailLevel.choices
-		self.detailLevelIdx = config.plugins.OAWeather.detailLevel.choices.index(
-			config.plugins.OAWeather.detailLevel.value
-		)
+        self.detailLevels = config.plugins.OAWeather.detailLevel.choices
+        self.detailLevelIdx = config.plugins.OAWeather.detailLevel.choices.index(
+            config.plugins.OAWeather.detailLevel.value
+        )
 
-		self.currdatehour = datetime.today().replace(minute=0, second=0, microsecond=0)
-		self.currdaydelta = 0
-		self.skinList = []
-		self.dayList = []
-		self.sunList = []
-		self.moonList = []
-		self.na = _("n/a")
-		self.title = _("Weather Plugin Detailview")
-		self["version"] = StaticText(f"OA-Weather {weatherhelper.version}")
-		self["detailList"] = List()
-		self["update"] = Label(_("Update"))
-		self["currdatetime"] = Label(self.currdatehour.strftime("%a %d %b"))
-		self["sunrise"] = StaticText(self.na)
-		self["sunset"] = StaticText(self.na)
-		self["moonrise"] = StaticText("")
-		self["moonset"] = StaticText("")
-		self["moonrisepix"] = Pixmap()
-		self["moonsetpix"] = Pixmap()
-		self["cityarea"] = Label()
-		self["key_red"] = StaticText(_("Exit"))
-		self["key_green"] = StaticText(_("Chose favorite"))
-		self["key_yellow"] = StaticText(_("Previous favorite"))
-		self["key_blue"] = StaticText(_("Next favorite"))
-		self["key_channel"] = StaticText(_("Day +/-"))
-		self["key_info"] = StaticText(_("Details +/-"))
-		self["key_ok"] = StaticText(_("Glass"))
-		self["actions"] = ActionMap(
-			["OAWeatherActions", "ColorActions", "InfoActions"],
-			{
-				"ok": self.toggleDetailframe,
-				"cancel": self.exit,
-				"up": self.prevEntry,
-				"down": self.nextEntry,
-				"right": self.pageDown,
-				"left": self.pageUp,
-				"red": self.exit,
-				"yellow": self.favoriteUp,
-				"blue": self.favoriteDown,
-				"green": self.favoriteChoice,
-				"channeldown": self.prevDay,
-				"channelup": self.nextDay,
-				"info": self.toggleDetailLevel,
-				"menu": self.config
-			},
-			-1
-		)
-		self["statustext"] = StaticText()
-		self.pressPix = self.getPixmap("barometer.png")
-		self.tempPix = self.getPixmap("temp.png")
-		self.feelPix = self.getPixmap("feels.png")
-		self.humidPix = self.getPixmap("hygrometer.png")
-		self.precipPix = self.getPixmap("umbrella.png")
-		self.WindSpdPpix = self.getPixmap("wind.png")
-		self.WindDirPix = self.getPixmap("compass.png")
-		self.WindGustPix = self.getPixmap("windgust.png")
-		self.uvIndexPix = self.getPixmap("uv_index.png")
-		self.visiblePix = self.getPixmap("binoculars.png")
-		self.onLayoutFinish.append(self.firstRun)
+        self.currdatehour = datetime.today().replace(minute=0, second=0, microsecond=0)
+        self.currdaydelta = 0
+        self.skinList = []
+        self.sunList = []
+        self.moonList = []
+        self.na = _("n/a")
 
-	def firstRun(self):
-		moonrisepix = join(PLUGINPATH, "Images/moonrise.png")
-		moonsetpix = join(PLUGINPATH, "Images/moonset.png")
+        self.dayList = [[]]
+        self.currdaydelta = 0
+        self.currdatehour = datetime.today().replace(
+            minute=0, second=0, microsecond=0
+        )
+        self.title = _("Weather Plugin Detailview")
+        self["version"] = StaticText(f"OA-Weather {weatherhelper.version}")
+        self["detailList"] = List()
+        self["update"] = Label(_("Update"))
+        self["currdatetime"] = Label(self.currdatehour.strftime("%a %d %b"))
+        self["sunrise"] = StaticText(self.na)
+        self["sunset"] = StaticText(self.na)
+        self["moonrise"] = StaticText("")
+        self["moonset"] = StaticText("")
+        self["moonrisepix"] = Pixmap()
+        self["moonsetpix"] = Pixmap()
+        self["cityarea"] = Label()
+        self["key_red"] = StaticText(_("Exit"))
+        self["key_green"] = StaticText(_("Chose favorite"))
+        self["key_yellow"] = StaticText(_("Previous favorite"))
+        self["key_blue"] = StaticText(_("Next favorite"))
+        self["key_channel"] = StaticText(_("Day +/-"))
+        self["key_info"] = StaticText(_("Details +/-"))
+        self["key_ok"] = StaticText(_("Glass"))
+        self["actions"] = ActionMap(
+            ["OAWeatherActions", "ColorActions", "InfoActions"],
+            {
+                "ok": self.toggleDetailframe,
+                "cancel": self.exit,
+                "up": self.prevEntry,
+                "down": self.nextEntry,
+                "right": self.pageDown,
+                "left": self.pageUp,
+                "red": self.exit,
+                "yellow": self.favoriteUp,
+                "blue": self.favoriteDown,
+                "green": self.favoriteChoice,
+                "channeldown": self.prevDay,
+                "channelup": self.nextDay,
+                "info": self.toggleDetailLevel,
+                "menu": self.config
+            },
+            -1
+        )
+        self["statustext"] = StaticText()
+        self.pressPix = self.getPixmap("barometer.png")
+        self.tempPix = self.getPixmap("temp.png")
+        self.feelPix = self.getPixmap("feels.png")
+        self.humidPix = self.getPixmap("hygrometer.png")
+        self.precipPix = self.getPixmap("umbrella.png")
+        self.WindSpdPpix = self.getPixmap("wind.png")
+        self.WindDirPix = self.getPixmap("compass.png")
+        self.WindGustPix = self.getPixmap("windgust.png")
+        self.uvIndexPix = self.getPixmap("uv_index.png")
+        self.visiblePix = self.getPixmap("binoculars.png")
+        self.onLayoutFinish.append(self.firstRun)
 
-		if not exists(moonrisepix):
-			self["moonrisepix"].hide()
+    def firstRun(self):
+        moonrisepix = join(PLUGINPATH, "Images/moonrise.png")
+        moonsetpix = join(PLUGINPATH, "Images/moonset.png")
 
-		if not exists(moonsetpix):
-			self["moonsetpix"].hide()
+        if not exists(moonrisepix):
+            self["moonrisepix"].hide()
 
-		if exists(moonrisepix):
-			self["moonrisepix"].instance.setPixmapFromFile(moonrisepix)
-		self["moonrisepix"].hide()
+        if not exists(moonsetpix):
+            self["moonsetpix"].hide()
 
-		if exists(moonsetpix):
-			self["moonsetpix"].instance.setPixmapFromFile(moonsetpix)
-		self["detailList"].style = self.detailLevels[self.detailLevelIdx]
-		self.startRun()
+        if exists(moonrisepix):
+            self["moonrisepix"].instance.setPixmapFromFile(moonrisepix)
+        self["moonrisepix"].hide()
 
-	def startRun(self):
-		callInThread(self.parseData)
+        if exists(moonsetpix):
+            self["moonsetpix"].instance.setPixmapFromFile(moonsetpix)
+        self["detailList"].style = self.detailLevels[self.detailLevelIdx]
+        self.startRun()
 
-	def updateSkinList(self):
-		try:
-			weekday = _('Today') if self.currdatehour.weekday() == datetime.today().weekday() else self.currdatehour.strftime("%a")
-			self["currdatetime"].setText(f"{weekday} {self.currdatehour.strftime('%d %b')}")
+    def startRun(self):
+        callInThread(self.parseData)
 
-			iconpix = [
-				self.pressPix, self.tempPix, self.feelPix,
-				self.humidPix, self.precipPix, self.WindSpdPpix,
-				self.WindDirPix, self.WindGustPix,
-				self.uvIndexPix if config.plugins.OAWeather.weatherservice.value != "openweather" else None,
-				self.visiblePix
-			]
+    def updateSkinList(self):
+        try:
+            weekday = _('Today') if self.currdatehour.weekday() == datetime.today().weekday() else self.currdatehour.strftime("%a")
+            self["currdatetime"].setText(f"{weekday} {self.currdatehour.strftime('%d %b')}")
 
-			if self.dayList:
-				hourData = self.dayList[self.currdaydelta]
-				skinList = []
-				for hour in hourData:
-					skinList.append(tuple(hour + iconpix))
-			else:
-				# Create default "No data" entry
-				no_data = [
-					_("No data"), _("--"), _("--"), _("--"), _("--"), _("--"),
-					_("--"), _("--"), _("--"), _("--"), _("--"),
-					_("Weather data unavailable"),
-					_("Try refreshing or check settings"),
-					None
-				]
-				skinList = [tuple(no_data + iconpix)]
-			self["detailList"].setList(skinList)
-			self.skinList = skinList
-			self.updateDetailFrame()
-		except Exception as e:
-			logger.error(f"Error updating skin list: {str(e)}")
+            iconpix = [
+                self.pressPix, self.tempPix, self.feelPix,
+                self.humidPix, self.precipPix, self.WindSpdPpix,
+                self.WindDirPix, self.WindGustPix,
+                self.uvIndexPix if config.plugins.OAWeather.weatherservice.value != "openweather" else None,
+                self.visiblePix
+            ]
 
-	def updateDetailFrame(self):
-		if self.detailFrameActive:
-			current = self["detailList"].getCurrent()
-			if current is not None:
-				# Extract only the data fields (first 14 elements)
-				data_fields = list(current)[:14]
-				self.detailFrame.updateFrame(data_fields)
+            if self.dayList:
+                hourData = self.dayList[self.currdaydelta]
+                skinList = []
+                for hour in hourData:
+                    skinList.append(tuple(hour + iconpix))
+            else:
+                # Create default "No data" entry
+                no_data = [
+                    _("No data"), "--", "--", "--", "--", "--",
+                    "--", "--", "--", "--", "--",
+                    _("Weather data unavailable"),
+                    _("Try refreshing or check settings"),
+                    None
+                ]
+                skinList = [tuple(no_data + iconpix)]
 
-	def toggleDetailframe(self):
-		try:
-			if self.detailFrameActive:
-				self.detailFrame.hideFrame()
-			else:
-				self.detailFrame.showFrame()  # Show the frame
-			self.detailFrameActive = not self.detailFrameActive
-			self.updateDetailFrame()
-		except Exception as e:
-			logger.error(f"Error toggling detail frame: {str(e)}")
-			self.detailFrameActive = False
+            self["detailList"].setList(skinList)
+            self.skinList = skinList
+            self.updateDetailFrame()
+        except Exception as e:
+            logger.error(f"Error updating skin list: {str(e)}")
 
-	def toggleDetailLevel(self):
-		self.detailLevelIdx ^= 1
-		self["detailList"].style = self.detailLevels[self.detailLevelIdx]
-		self["detailList"].updateList(self.skinList)
+    def updateDetailFrame(self):
+        if self.detailFrameActive:
+            current = self["detailList"].getCurrent()
+            if current is not None:
+                # Extract only the data fields (first 14 elements)
+                data_fields = list(current)[:14]
+                self.detailFrame.updateFrame(data_fields)
 
-	def updateMoonData(self):
-		if self.moonList:
-			self["moonrise"].setText(datetime.fromisoformat(self.moonList[self.currdaydelta][0]).strftime("%H:%M"))
-			self["moonset"].setText(datetime.fromisoformat(self.moonList[self.currdaydelta][1]).strftime("%H:%M"))
-			self["moonrisepix"].show()
-			self["moonsetpix"].show()
-		else:
-			self["moonrise"].setText("")
-			self["moonset"].setText("")
-			self["moonrisepix"].hide()
-			self["moonsetpix"].hide()
-		if self.sunList:
-			self["sunrise"].setText(datetime.fromisoformat(self.sunList[self.currdaydelta][0]).strftime("%H:%M"))
-			self["sunset"].setText(datetime.fromisoformat(self.sunList[self.currdaydelta][1]).strftime("%H:%M"))
-		else:
-			self["sunrise"].setText("")
-			self["sunset"].setText("")
+    def toggleDetailframe(self):
+        try:
+            if self.detailFrameActive:
+                self.detailFrame.hideFrame()
+            else:
+                self.detailFrame.showFrame()  # Show the frame
+            self.detailFrameActive = not self.detailFrameActive
+            self.updateDetailFrame()
+        except Exception as e:
+            logger.error(f"Error toggling detail frame: {str(e)}")
+            self.detailFrameActive = False
 
-	def getPixmap(self, filename):
-		iconfile = join(PLUGINPATH, f"Images/{filename}")
-		return LoadPixmap(cached=True, path=iconfile) if exists(iconfile) else None
+    def toggleDetailLevel(self):
+        self.detailLevelIdx ^= 1
+        self["detailList"].style = self.detailLevels[self.detailLevelIdx]
+        self["detailList"].updateList(self.skinList)
 
-	def parseData(self):
-		try:
-			weatherservice = config.plugins.OAWeather.weatherservice.value
-			if weatherservice in ["MSN", "OpenMeteo", "openweather"]:
-				parser = {
-					"MSN": self.msnparser,
-					"OpenMeteo": self.omwparser,
-					"openweather": self.owmparser
-				}
-				parser[weatherservice]()
-			else:
-				logger.warning(f"Unsupported weather service: {weatherservice}")
-				self.dayList = []
-		except Exception as e:
-			logger.error(f"Weather data parsing error: {str(e)}")
-			self.dayList = []
-		finally:
-			# Always update UI even if parsing fails
-			self.updateSkinList()
-			self.updateMoonData()
+    def updateMoonData(self):
+        if self.moonList:
+            self["moonrise"].setText(datetime.fromisoformat(self.moonList[self.currdaydelta][0]).strftime("%H:%M"))
+            self["moonset"].setText(datetime.fromisoformat(self.moonList[self.currdaydelta][1]).strftime("%H:%M"))
+            self["moonrisepix"].show()
+            self["moonsetpix"].show()
+        else:
+            self["moonrise"].setText("")
+            self["moonset"].setText("")
+            self["moonrisepix"].hide()
+            self["moonsetpix"].hide()
+        if self.sunList:
+            self["sunrise"].setText(datetime.fromisoformat(self.sunList[self.currdaydelta][0]).strftime("%H:%M"))
+            self["sunset"].setText(datetime.fromisoformat(self.sunList[self.currdaydelta][1]).strftime("%H:%M"))
+        else:
+            self["sunrise"].setText("")
+            self["sunset"].setText("")
 
-	def msnparser(self):
-		iconpath = config.plugins.OAWeather.iconset.value
-		iconpath = join(ICONSETROOT, iconpath) if iconpath else join(PLUGINPATH, "Icons")
-		dayList = []
-		responses = weatherhandler.getFulldata().get("responses")
-		if responses:  # collect latest available data
-			weather = responses[0]["weather"][0]
-			current = weather["current"]
-			nowcasting = weather["nowcasting"]
-			today = weather["forecast"]["days"][0]
-			sunrisestr = today["almanac"].get("sunrise", "")
-			sunrisestr = datetime.fromisoformat(sunrisestr).replace(tzinfo=None).isoformat() if sunrisestr else ""
-			sunsetstr = today["almanac"].get("sunset", "")
-			sunsetstr = datetime.fromisoformat(sunsetstr).replace(tzinfo=None).isoformat() if sunsetstr else ""
-			created = current.get("created")
-			currtime = datetime.fromisoformat(created).replace(tzinfo=None) if created else ""
-			timestr = currtime.strftime("%H:%M h") if currtime else ""
-			tempunit = "°C" if config.plugins.OAWeather.tempUnit.value == "Celsius" else "°F"
-			press = f"{round(current.get('baro', 0))} mbar"
-			temp = f"{round(current.get('temp', 0))} {tempunit}"
-			feels = f"{round(current.get('feels', 0))} {tempunit}"
-			humid = f"{round(current.get('rh', 0))} %"
-			hourly = today["hourly"]
-			precip = f"{round(hourly[0]['precip'])} %" if len(hourly) else self.na  # workaround: use value from next hour if available
-			windSpd = f"{round(current.get('windSpd', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
-			windDir = f"{_(weatherhandler.WI.directionsign(round(current.get('windDir', 0))))}"
-			windGusts = f"{round(current.get('windGust', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
-			uvIndex = f"{round(current.get('uv', 0))}"
-			visibility = f"{round(current.get('vis', 0))} km"
-			shortDesc = current.get("pvdrCap", "")  # e.g. 'bewölkt'
-			longDesc = nowcasting.get("summary", "")  # e.g. "Der Himmel wird bewölkt."
-			yahoocode = weatherhandler.WI.convert2icon("MSN", current.get("symbol", "")).get("yahooCode")
-			yahoocode = self.nightSwitch(yahoocode, self.getIsNight(currtime, sunrisestr, sunsetstr))
-			iconfile = join(iconpath, f"{yahoocode}.png")
-			iconpix = LoadPixmap(cached=True, path=iconfile) if iconfile and exists(iconfile) else None
-			hourData = []
-			hourData.append([timestr, press, temp, feels, humid, precip, windSpd, windDir, windGusts, uvIndex, visibility, shortDesc, longDesc, iconpix])
-			days = weather["forecast"]["days"]
-			if days:
-				self.sunList = []
-				self.moonList = []
-				for index, day in enumerate(days):  # collect data on future hours of current day
-					if index:
-						hourData = []
-					almanac = day.get("almanac", {})
-					sunrisestr = almanac.get("sunrise", "")
-					sunrisestr = datetime.fromisoformat(sunrisestr).replace(tzinfo=None).isoformat() if sunrisestr else ""
-					sunsetstr = almanac.get("sunset", "")
-					sunsetstr = datetime.fromisoformat(sunsetstr).replace(tzinfo=None).isoformat() if sunsetstr else ""
-					moonrisestr = almanac.get("moonrise", "")
-					moonrisestr = datetime.fromisoformat(moonrisestr).replace(tzinfo=None).isoformat() if moonrisestr else ""
-					moonsetstr = almanac.get("moonset", "")
-					moonsetstr = datetime.fromisoformat(moonsetstr).replace(tzinfo=None).isoformat() if moonsetstr else ""
-					for hour in day.get("hourly", []):
-						valid = hour.get("valid")
-						currtime = datetime.fromisoformat(valid).replace(tzinfo=None) if valid else ""
-						timestr = currtime.strftime("%H:%M h") if currtime else ""
-						press = f"{round(hour.get('baro', 0))} mbar"
-						tempunit = "°C" if config.plugins.OAWeather.tempUnit.value == "Celsius" else "°F"
-						temp = f"{round(hour.get('temp', 0))} {tempunit}"
-						feels = f"{round(hour.get('feels', 0))} {tempunit}"
-						humid = f"{round(hour.get('rh', 0))} %"
-						precip = f"{round(hour.get('precip', 0))} %"
-						windSpd = f"{round(hour.get('windSpd', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
-						windDir = f"{_(weatherhandler.WI.directionsign(round(hour.get('windDir', 0))))}"
-						windGusts = f"{round(hour.get('windGust', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
-						uvIndex = f"{round(hour.get('uv', 0))}"
-						visibility = f"{round(hour.get('vis', 0))} km"
-						shortDesc = hour.get("pvdrCap", "")  # e.g. 'bewölkt'
-						longDesc = hour.get("summary", "")  # e.g. "Der Himmel wird bewölkt."
-						yahoocode = weatherhandler.WI.convert2icon("MSN", hour.get("symbol", "")).get("yahooCode")  # e.g. 'n4000' -> {'yahooCode': '26', 'meteoCode': 'Y'}
-						yahoocode = self.nightSwitch(yahoocode, self.getIsNight(currtime, sunrisestr, sunsetstr))
-						iconfile = join(iconpath, f"{yahoocode}.png")
-						iconpix = LoadPixmap(cached=True, path=iconfile) if iconfile and exists(iconfile) else None
-						hourData.append([timestr, press, temp, feels, humid, precip, windSpd, windDir, windGusts, uvIndex, visibility, shortDesc, longDesc, iconpix])
-					dayList.append(hourData)
-					self.sunList.append((sunrisestr, sunsetstr))
-					self.moonList.append((moonrisestr, moonsetstr))
-		self.dayList = dayList
+    def getPixmap(self, filename):
+        iconfile = join(PLUGINPATH, f"Images/{filename}")
+        return LoadPixmap(cached=True, path=iconfile) if exists(iconfile) else None
 
-	def omwparser(self):
-		iconpath = config.plugins.OAWeather.iconset.value
-		iconpath = join(ICONSETROOT, iconpath) if iconpath else join(PLUGINPATH, "Icons")
-		fulldata = weatherhandler.getFulldata()
-		if fulldata:
-			daily = fulldata.get("daily", {})
-			sunriseList = daily.get("sunrise", [])
-			sunsetList = daily.get("sunset", [])
-			self.sunList = []
-			for index, sunrisestr in enumerate(sunriseList):
-				sunsetstr = sunsetList[index]
-				self.sunList.append((sunrisestr if sunrisestr else self.na, sunsetstr if sunsetstr else self.na))
-			self.moonList = []  # OMW does not support moonrise / moonset at all
-			hourly = fulldata.get("hourly", {})
-			dayList = []
-			if hourly:
-				timeList = hourly.get("time", [])
-				pressList = hourly.get("pressure_msl")
-				tempList = hourly.get("temperature_2m", [])
-				feelsList = hourly.get("apparent_temperature", [])
-				humidList = hourly.get("relativehumidity_2m", [])
-				precipList = hourly.get("precipitation_probability", [])
-				wSpeedList = hourly.get("windspeed_10m", [])
-				wGustList = hourly.get("wind_gusts_10m", [])
-				wDirList = hourly.get("winddirection_10m", [])
-				uvList = hourly.get("uv_index", [])
-				visList = hourly.get("visibility", [])
-				wCodeList = hourly.get("weathercode", [])
-				currday = datetime.fromisoformat(timeList[0]).replace(hour=0, minute=0, second=0, microsecond=0)
-				daycount = 0
-				hourData = []
-				for idx, isotime in enumerate(timeList):
-					currtime = datetime.fromisoformat(isotime)
-					timestr = currtime.strftime("%H:%M h")
-					press = f"{round(pressList[idx])} mbar"
-					tempunit = "°C" if config.plugins.OAWeather.tempUnit.value == "Celsius" else "°F"
-					temp = f"{round(tempList[idx])} {tempunit}"
-					feels = f"{round(feelsList[idx])} {tempunit}"
-					humid = f"{round(humidList[idx])} %"
-					precip = f"{round(precipList[idx])} %"
-					windSpd = f"{round(wSpeedList[idx])} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
-					windDir = f"{_(weatherhandler.WI.directionsign(round(round(wDirList[idx]))))}"
-					windGusts = f"{round(wGustList[idx])} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
-					uvIndex = f"{round(uvList[idx])}"
-					visibility = f"{round(visList[idx] / 1000)} km"
-					shortDesc, longDesc = "", ""  # OMW does not support description texts at all
-					isNight = self.getIsNight(currtime, sunriseList[daycount], sunsetList[daycount])
-					yahoocode = self.nightSwitch(weatherhandler.WI.convert2icon("OMW", wCodeList[idx]).get("yahooCode"), isNight)  # e.g. '1' -> {'yahooCode': '34', 'meteoCode': 'B'}
-					iconfile = join(iconpath, f"{yahoocode}.png")
-					iconpix = LoadPixmap(cached=True, path=iconfile) if iconfile and exists(iconfile) else None
-					hourData.append([timestr, press, temp, feels, humid, precip, windSpd, windDir, windGusts, uvIndex, visibility, shortDesc, longDesc, iconpix])
-					timeday = currtime.replace(hour=0, minute=0, second=0, microsecond=0)
-					if timeday > currday:  # is a new day?
-						currday = timeday
-						daycount += 1
-						dayList.append(hourData)
-						hourData = []
-			self.dayList = dayList
+    def parseData(self):
+        try:
+            weatherservice = config.plugins.OAWeather.weatherservice.value
+            if weatherservice in ["MSN", "OpenMeteo", "openweather"]:
+                parser = {
+                    "MSN": self.msnparser,
+                    "OpenMeteo": self.omwparser,
+                    "openweather": self.owmparser
+                }
+                parser[weatherservice]()
+            else:
+                logger.warning(f"Unsupported service: {weatherservice}")
+                self.dayList = []
 
-	def owmparser(self):
-		iconpath = config.plugins.OAWeather.iconset.value
-		iconpath = join(ICONSETROOT, iconpath) if iconpath else join(PLUGINPATH, "Icons")
-		fulldata = weatherhandler.getFulldata()
-		if fulldata:
-			city = fulldata.get("city", {})
-			sunriseTs, sunsetTs = city.get("sunrise", 0), city.get("sunset", 0)  # OM only supports sunris/sunset of today
-			sunrisestr = datetime.fromtimestamp(sunriseTs).isoformat() if sunriseTs else ""
-			sunsetstr = datetime.fromtimestamp(sunsetTs).isoformat() if sunsetTs else ""
-			self.sunList, self.moonList = [], []  # OMW does not support moonrise / moonset at all
-			hourData = []
-			tempunit = "°C" if config.plugins.OAWeather.tempUnit.value == "Celsius" else "°F"
-			timeTs = fulldata.get("dt", 0)  # collect latest available data
-			timestr = datetime.fromtimestamp(timeTs).strftime("%H:%M") if timeTs else ""
-			main = fulldata.get("main", {})
-			hourly = fulldata.get("list", {})
-			press = f"{round(main.get('pressure', 0))} mbar"
-			temp = f"{round(main.get('temp', 0))} {tempunit}"
-			feels = f"{round(main.get('feels_like', 0))} {tempunit}"
-			humid = f"{round(main.get('humidity', 0))} %"
-			precip = f"{round(hourly[0].get('pop', 0) * 100)} %"
-			wind = fulldata.get('wind', {})
-			windSpd = f"{round(wind.get('speed', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
-			windDir = f"{_(weatherhandler.WI.directionsign(round(wind.get('deg', 0))))}"
-			windGusts = f"{round(hourly[0].get('wind', {}).get('gust', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
-			uvIndex = ""  # OWM does not support UV-index at all
-			visibility = f"{round(fulldata.get('visibility', 0) / 1000)} km"
-			weather = fulldata.get("weather", [""])[0]
-			shortDesc = weather.get("description", "")
-			longDesc = ""  # OWM does not support long descriptions at all
-			currtime = datetime.fromtimestamp(timeTs)
-			isNight = self.getIsNight(currtime, sunrisestr, sunsetstr)
-			yahoocode = self.nightSwitch(weatherhandler.WI.convert2icon("OWM", weather.get("id", "n/a")).get("yahooCode"), isNight)  # e.g. '801' -> {'yahooCode': '34', 'meteoCode': 'B'}
-			iconfile = join(iconpath, f"{yahoocode}.png")
-			iconpix = LoadPixmap(cached=True, path=iconfile) if iconfile and exists(iconfile) else None
-			hourData.append([timestr, press, temp, feels, humid, precip, windSpd, windDir, windGusts, uvIndex, visibility, shortDesc, longDesc, iconpix])
-			dayList = []
-			if hourly:
-				currday = datetime.fromisoformat(hourly[0].get("dt_txt", "1900-01-01 00:00:00")).replace(hour=0, minute=0, second=0, microsecond=0)
-				for hour in hourly:  # collect data on future hours of current day
-					isotime = hour.get("dt_txt", "1900-01-01 00:00:00")
-					timestr = isotime[11:16]
-					main = hour.get("main", {})
-					press = f"{round(main.get('pressure', 0))} mbar"
-					temp = f"{round(main.get('temp', 0))} {tempunit}"
-					feels = f"{round(main.get('feels_like', 0))} {tempunit}"
-					humid = f"{round(main.get('humidity', 0))} %"
-					precip = f"{round(hour.get('pop', 0) * 100)} %"
-					wind = hour.get("wind", {})
-					windSpd = f"{round(wind.get('speed', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
-					windDir = f"{_(weatherhandler.WI.directionsign(round(wind.get('deg', 0))))}"
-					windGusts = f"{round(wind.get('gust', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
-					uvIndex = ""  # OWM does not support UV-index at all
-					visibility = f"{round(hour.get('visibility', 0) / 1000)} km"
-					weather = hour.get("weather", [""])[0]
-					shortDesc = weather.get("description", "")
-					longDesc = ""  # OWM does not support long descriptions at all
-					currtime = datetime.fromisoformat(isotime)
-					isNight = self.getIsNight(currtime, sunrisestr, sunsetstr)
-					yahoocode = self.nightSwitch(weatherhandler.WI.convert2icon("OWM", weather.get("id", "n/a")).get("yahooCode"), isNight)
-					iconfile = join(iconpath, f"{yahoocode}.png")
-					iconpix = LoadPixmap(cached=True, path=iconfile) if iconfile and exists(iconfile) else None
-					hourData.append([timestr, press, temp, feels, humid, precip, windSpd, windDir, windGusts, uvIndex, visibility, shortDesc, longDesc, iconpix])
-					timeday = currtime.replace(hour=0, minute=0, second=0, microsecond=0)
-					if timeday > currday:  # is a new day?
-						currday = timeday
-						dayList.append(hourData)
-						hourData = []
-						self.sunList.append((sunrisestr, sunsetstr))
-			self.dayList = dayList
+            # Initialize dayList if empty
+            if not hasattr(self, "dayList") or not self.dayList:
+                self.dayList = [[]]  # List with one empty day
+                self.session.open(
+                    MessageBox,
+                    _("Weather data unavailable"),
+                    MessageBox.TYPE_WARNING
+                )
 
-	def getIsNight(self, currtime, sunrisestr, sunsetstr):
-		if sunrisestr and sunsetstr:
-			sunrise = datetime.fromisoformat(sunrisestr)
-			sunset = datetime.fromisoformat(sunsetstr)
-			isNight = True if currtime < sunrise or currtime > sunset else False
-		else:
-			isNight = False
-		return isNight
+        except Exception as e:
+            logger.error(f"Data parsing error: {str(e)}")
+            self.dayList = [[]]
+        finally:
+            self.updateDisplay()
 
-	def nightSwitch(self, iconcode, isNight):
-		return self.YAHOOnightswitch.get(iconcode, iconcode) if config.plugins.OAWeather.nighticons.value and isNight else self.YAHOOdayswitch.get(iconcode, iconcode)
+    def msnparser(self):
+        iconpath = config.plugins.OAWeather.iconset.value
+        iconpath = join(ICONSETROOT, iconpath) if iconpath else join(PLUGINPATH, "Icons")
+        dayList = []
+        responses = weatherhandler.getFulldata().get("responses")
+        if responses:  # collect latest available data
+            weather = responses[0]["weather"][0]
+            current = weather["current"]
+            nowcasting = weather["nowcasting"]
+            today = weather["forecast"]["days"][0]
+            sunrisestr = today["almanac"].get("sunrise", "")
+            sunrisestr = datetime.fromisoformat(sunrisestr).replace(tzinfo=None).isoformat() if sunrisestr else ""
+            sunsetstr = today["almanac"].get("sunset", "")
+            sunsetstr = datetime.fromisoformat(sunsetstr).replace(tzinfo=None).isoformat() if sunsetstr else ""
+            created = current.get("created")
+            currtime = datetime.fromisoformat(created).replace(tzinfo=None) if created else ""
+            timestr = currtime.strftime("%H:%M h") if currtime else ""
+            tempunit = "°C" if config.plugins.OAWeather.tempUnit.value == "Celsius" else "°F"
+            press = f"{round(current.get('baro', 0))} mbar"
+            temp = f"{round(current.get('temp', 0))} {tempunit}"
+            feels = f"{round(current.get('feels', 0))} {tempunit}"
+            humid = f"{round(current.get('rh', 0))} %"
+            hourly = today["hourly"]
+            precip = f"{round(hourly[0]['precip'])} %" if len(hourly) else self.na  # workaround: use value from next hour if available
+            windSpd = f"{round(current.get('windSpd', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
+            windDir = f"{_(weatherhandler.WI.directionsign(round(current.get('windDir', 0))))}"
+            windGusts = f"{round(current.get('windGust', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
+            uvIndex = f"{round(current.get('uv', 0))}"
+            visibility = f"{round(current.get('vis', 0))} km"
+            shortDesc = current.get("pvdrCap", "")  # e.g. 'bewölkt'
+            longDesc = nowcasting.get("summary", "")  # e.g. "Der Himmel wird bewölkt."
+            yahoocode = weatherhandler.WI.convert2icon("MSN", current.get("symbol", "")).get("yahooCode")
+            yahoocode = self.nightSwitch(yahoocode, self.getIsNight(currtime, sunrisestr, sunsetstr))
+            iconfile = join(iconpath, f"{yahoocode}.png")
+            iconpix = LoadPixmap(cached=True, path=iconfile) if iconfile and exists(iconfile) else None
+            hourData = []
+            hourData.append([timestr, press, temp, feels, humid, precip, windSpd, windDir, windGusts, uvIndex, visibility, shortDesc, longDesc, iconpix])
+            days = weather["forecast"]["days"]
+            if days:
+                self.sunList = []
+                self.moonList = []
+                for index, day in enumerate(days):  # collect data on future hours of current day
+                    if index:
+                        hourData = []
+                    almanac = day.get("almanac", {})
+                    sunrisestr = almanac.get("sunrise", "")
+                    sunrisestr = datetime.fromisoformat(sunrisestr).replace(tzinfo=None).isoformat() if sunrisestr else ""
+                    sunsetstr = almanac.get("sunset", "")
+                    sunsetstr = datetime.fromisoformat(sunsetstr).replace(tzinfo=None).isoformat() if sunsetstr else ""
+                    moonrisestr = almanac.get("moonrise", "")
+                    moonrisestr = datetime.fromisoformat(moonrisestr).replace(tzinfo=None).isoformat() if moonrisestr else ""
+                    moonsetstr = almanac.get("moonset", "")
+                    moonsetstr = datetime.fromisoformat(moonsetstr).replace(tzinfo=None).isoformat() if moonsetstr else ""
+                    for hour in day.get("hourly", []):
+                        valid = hour.get("valid")
+                        currtime = datetime.fromisoformat(valid).replace(tzinfo=None) if valid else ""
+                        timestr = currtime.strftime("%H:%M h") if currtime else ""
+                        press = f"{round(hour.get('baro', 0))} mbar"
+                        tempunit = "°C" if config.plugins.OAWeather.tempUnit.value == "Celsius" else "°F"
+                        temp = f"{round(hour.get('temp', 0))} {tempunit}"
+                        feels = f"{round(hour.get('feels', 0))} {tempunit}"
+                        humid = f"{round(hour.get('rh', 0))} %"
+                        precip = f"{round(hour.get('precip', 0))} %"
+                        windSpd = f"{round(hour.get('windSpd', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
+                        windDir = f"{_(weatherhandler.WI.directionsign(round(hour.get('windDir', 0))))}"
+                        windGusts = f"{round(hour.get('windGust', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
+                        uvIndex = f"{round(hour.get('uv', 0))}"
+                        visibility = f"{round(hour.get('vis', 0))} km"
+                        shortDesc = hour.get("pvdrCap", "")  # e.g. 'bewölkt'
+                        longDesc = hour.get("summary", "")  # e.g. "Der Himmel wird bewölkt."
+                        yahoocode = weatherhandler.WI.convert2icon("MSN", hour.get("symbol", "")).get("yahooCode")  # e.g. 'n4000' -> {'yahooCode': '26', 'meteoCode': 'Y'}
+                        yahoocode = self.nightSwitch(yahoocode, self.getIsNight(currtime, sunrisestr, sunsetstr))
+                        iconfile = join(iconpath, f"{yahoocode}.png")
+                        iconpix = LoadPixmap(cached=True, path=iconfile) if iconfile and exists(iconfile) else None
+                        hourData.append([timestr, press, temp, feels, humid, precip, windSpd, windDir, windGusts, uvIndex, visibility, shortDesc, longDesc, iconpix])
+                    dayList.append(hourData)
+                    self.sunList.append((sunrisestr, sunsetstr))
+                    self.moonList.append((moonrisestr, moonsetstr))
+        self.dayList = dayList
 
-	def favoriteUp(self):
-		if weatherhelper.favoriteList:
-			self.currFavIdx = (self.currFavIdx - 1) % len(weatherhelper.favoriteList)
-			callInThread(weatherhandler.reset, weatherhelper.favoriteList[self.currFavIdx], callback=self.parseData)
+    def omwparser(self):
+        iconpath = config.plugins.OAWeather.iconset.value
+        iconpath = join(ICONSETROOT, iconpath) if iconpath else join(PLUGINPATH, "Icons")
+        fulldata = weatherhandler.getFulldata()
+        if fulldata:
+            daily = fulldata.get("daily", {})
+            sunriseList = daily.get("sunrise", [])
+            sunsetList = daily.get("sunset", [])
+            self.sunList = []
+            for index, sunrisestr in enumerate(sunriseList):
+                sunsetstr = sunsetList[index]
+                self.sunList.append((sunrisestr if sunrisestr else self.na, sunsetstr if sunsetstr else self.na))
+            self.moonList = []  # OMW does not support moonrise / moonset at all
+            hourly = fulldata.get("hourly", {})
+            dayList = []
+            if hourly:
+                timeList = hourly.get("time", [])
+                pressList = hourly.get("pressure_msl")
+                tempList = hourly.get("temperature_2m", [])
+                feelsList = hourly.get("apparent_temperature", [])
+                humidList = hourly.get("relativehumidity_2m", [])
+                precipList = hourly.get("precipitation_probability", [])
+                wSpeedList = hourly.get("windspeed_10m", [])
+                wGustList = hourly.get("wind_gusts_10m", [])
+                wDirList = hourly.get("winddirection_10m", [])
+                uvList = hourly.get("uv_index", [])
+                visList = hourly.get("visibility", [])
+                wCodeList = hourly.get("weathercode", [])
+                currday = datetime.fromisoformat(timeList[0]).replace(hour=0, minute=0, second=0, microsecond=0)
+                daycount = 0
+                hourData = []
+                for idx, isotime in enumerate(timeList):
+                    currtime = datetime.fromisoformat(isotime)
+                    timestr = currtime.strftime("%H:%M h")
+                    press = f"{round(pressList[idx])} mbar"
+                    tempunit = "°C" if config.plugins.OAWeather.tempUnit.value == "Celsius" else "°F"
+                    temp = f"{round(tempList[idx])} {tempunit}"
+                    feels = f"{round(feelsList[idx])} {tempunit}"
+                    humid = f"{round(humidList[idx])} %"
+                    precip = f"{round(precipList[idx])} %"
+                    windSpd = f"{round(wSpeedList[idx])} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
+                    windDir = f"{_(weatherhandler.WI.directionsign(round(round(wDirList[idx]))))}"
+                    windGusts = f"{round(wGustList[idx])} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
+                    uvIndex = f"{round(uvList[idx])}"
+                    visibility = f"{round(visList[idx] / 1000)} km"
+                    shortDesc, longDesc = "", ""  # OMW does not support description texts at all
+                    isNight = self.getIsNight(currtime, sunriseList[daycount], sunsetList[daycount])
+                    yahoocode = self.nightSwitch(weatherhandler.WI.convert2icon("OMW", wCodeList[idx]).get("yahooCode"), isNight)  # e.g. '1' -> {'yahooCode': '34', 'meteoCode': 'B'}
+                    iconfile = join(iconpath, f"{yahoocode}.png")
+                    iconpix = LoadPixmap(cached=True, path=iconfile) if iconfile and exists(iconfile) else None
+                    hourData.append([timestr, press, temp, feels, humid, precip, windSpd, windDir, windGusts, uvIndex, visibility, shortDesc, longDesc, iconpix])
+                    timeday = currtime.replace(hour=0, minute=0, second=0, microsecond=0)
+                    if timeday > currday:  # is a new day?
+                        currday = timeday
+                        daycount += 1
+                        dayList.append(hourData)
+                        hourData = []
+            self.dayList = dayList
 
-	def favoriteDown(self):
-		if weatherhelper.favoriteList:
-			self.currFavIdx = (self.currFavIdx + 1) % len(weatherhelper.favoriteList)
-			callInThread(weatherhandler.reset, weatherhelper.favoriteList[self.currFavIdx], callback=self.parseData)
+    def owmparser(self):
+        iconpath = config.plugins.OAWeather.iconset.value
+        iconpath = join(ICONSETROOT, iconpath) if iconpath else join(PLUGINPATH, "Icons")
+        fulldata = weatherhandler.getFulldata()
+        if fulldata:
+            city = fulldata.get("city", {})
+            sunriseTs, sunsetTs = city.get("sunrise", 0), city.get("sunset", 0)  # OM only supports sunris/sunset of today
+            sunrisestr = datetime.fromtimestamp(sunriseTs).isoformat() if sunriseTs else ""
+            sunsetstr = datetime.fromtimestamp(sunsetTs).isoformat() if sunsetTs else ""
+            self.sunList, self.moonList = [], []  # OMW does not support moonrise / moonset at all
+            hourData = []
+            tempunit = "°C" if config.plugins.OAWeather.tempUnit.value == "Celsius" else "°F"
+            timeTs = fulldata.get("dt", 0)  # collect latest available data
+            timestr = datetime.fromtimestamp(timeTs).strftime("%H:%M") if timeTs else ""
+            main = fulldata.get("main", {})
+            hourly = fulldata.get("list", {})
+            press = f"{round(main.get('pressure', 0))} mbar"
+            temp = f"{round(main.get('temp', 0))} {tempunit}"
+            feels = f"{round(main.get('feels_like', 0))} {tempunit}"
+            humid = f"{round(main.get('humidity', 0))} %"
+            precip = f"{round(hourly[0].get('pop', 0) * 100)} %"
+            wind = fulldata.get('wind', {})
+            windSpd = f"{round(wind.get('speed', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
+            windDir = f"{_(weatherhandler.WI.directionsign(round(wind.get('deg', 0))))}"
+            windGusts = f"{round(hourly[0].get('wind', {}).get('gust', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
+            uvIndex = ""  # OWM does not support UV-index at all
+            visibility = f"{round(fulldata.get('visibility', 0) / 1000)} km"
+            weather = fulldata.get("weather", [""])[0]
+            shortDesc = weather.get("description", "")
+            longDesc = ""  # OWM does not support long descriptions at all
+            currtime = datetime.fromtimestamp(timeTs)
+            isNight = self.getIsNight(currtime, sunrisestr, sunsetstr)
+            yahoocode = self.nightSwitch(weatherhandler.WI.convert2icon("OWM", weather.get("id", "n/a")).get("yahooCode"), isNight)  # e.g. '801' -> {'yahooCode': '34', 'meteoCode': 'B'}
+            iconfile = join(iconpath, f"{yahoocode}.png")
+            iconpix = LoadPixmap(cached=True, path=iconfile) if iconfile and exists(iconfile) else None
+            hourData.append([timestr, press, temp, feels, humid, precip, windSpd, windDir, windGusts, uvIndex, visibility, shortDesc, longDesc, iconpix])
+            dayList = []
+            if hourly:
+                currday = datetime.fromisoformat(hourly[0].get("dt_txt", "1900-01-01 00:00:00")).replace(hour=0, minute=0, second=0, microsecond=0)
+                for hour in hourly:  # collect data on future hours of current day
+                    isotime = hour.get("dt_txt", "1900-01-01 00:00:00")
+                    timestr = isotime[11:16]
+                    main = hour.get("main", {})
+                    press = f"{round(main.get('pressure', 0))} mbar"
+                    temp = f"{round(main.get('temp', 0))} {tempunit}"
+                    feels = f"{round(main.get('feels_like', 0))} {tempunit}"
+                    humid = f"{round(main.get('humidity', 0))} %"
+                    precip = f"{round(hour.get('pop', 0) * 100)} %"
+                    wind = hour.get("wind", {})
+                    windSpd = f"{round(wind.get('speed', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
+                    windDir = f"{_(weatherhandler.WI.directionsign(round(wind.get('deg', 0))))}"
+                    windGusts = f"{round(wind.get('gust', 0))} {'km/h' if config.plugins.OAWeather.windspeedMetricUnit.value == 'km/h' else 'm/s'}"
+                    uvIndex = ""  # OWM does not support UV-index at all
+                    visibility = f"{round(hour.get('visibility', 0) / 1000)} km"
+                    weather = hour.get("weather", [""])[0]
+                    shortDesc = weather.get("description", "")
+                    longDesc = ""  # OWM does not support long descriptions at all
+                    currtime = datetime.fromisoformat(isotime)
+                    isNight = self.getIsNight(currtime, sunrisestr, sunsetstr)
+                    yahoocode = self.nightSwitch(weatherhandler.WI.convert2icon("OWM", weather.get("id", "n/a")).get("yahooCode"), isNight)
+                    iconfile = join(iconpath, f"{yahoocode}.png")
+                    iconpix = LoadPixmap(cached=True, path=iconfile) if iconfile and exists(iconfile) else None
+                    hourData.append([timestr, press, temp, feels, humid, precip, windSpd, windDir, windGusts, uvIndex, visibility, shortDesc, longDesc, iconpix])
+                    timeday = currtime.replace(hour=0, minute=0, second=0, microsecond=0)
+                    if timeday > currday:  # is a new day?
+                        currday = timeday
+                        dayList.append(hourData)
+                        hourData = []
+                        self.sunList.append((sunrisestr, sunsetstr))
+            self.dayList = dayList
 
-	# def favoriteChoice(self):
-		# choiceList = [(item[0], item) for item in weatherhelper.favoriteList]
-		# self.session.openWithCallback(self.returnFavoriteChoice, ChoiceBox, title=_("Select desired location"), list=choiceList)
+    def getIsNight(self, currtime, sunrisestr, sunsetstr):
+        if sunrisestr and sunsetstr:
+            sunrise = datetime.fromisoformat(sunrisestr)
+            sunset = datetime.fromisoformat(sunsetstr)
+            isNight = True if currtime < sunrise or currtime > sunset else False
+        else:
+            isNight = False
+        return isNight
 
-	def favoriteChoice(self):
-		choiceList = [(item[0], item) for item in weatherhelper.favoriteList]
-		self.session.openWithCallback(
-			lambda fav: self.session.openWithCallback(
-				lambda x: None,  # Callback vuoto
-				MessageBox,
-				_("Please use the main weather screen to change favorites"),
-				MessageBox.TYPE_INFO
-			) if fav else None,
-			ChoiceBox,
-			title=_("Select desired location"),
-			list=choiceList
-		)
+    def nightSwitch(self, iconcode, isNight):
+        return self.YAHOOnightswitch.get(iconcode, iconcode) if config.plugins.OAWeather.nighticons.value and isNight else self.YAHOOdayswitch.get(iconcode, iconcode)
 
-	def returnFavoriteChoice(self, favorite):
-		if favorite is not None:
-			config.plugins.OAWeather.weatherlocation.value = favorite[1]
-			config.plugins.OAWeather.weatherlocation.save()
-			callInThread(weatherhandler.reset, favorite[1], callback=self.parseData)
+    def favoriteUp(self):
+        if weatherhelper.favoriteList:
+            self.currFavIdx = (self.currFavIdx - 1) % len(weatherhelper.favoriteList)
+            callInThread(weatherhandler.reset, weatherhelper.favoriteList[self.currFavIdx], callback=self.parseData)
 
-	def prevEntry(self):
-		self["detailList"].up()
-		self.updateDetailFrame()
+    def favoriteDown(self):
+        if weatherhelper.favoriteList:
+            self.currFavIdx = (self.currFavIdx + 1) % len(weatherhelper.favoriteList)
+            callInThread(weatherhandler.reset, weatherhelper.favoriteList[self.currFavIdx], callback=self.parseData)
 
-	def nextEntry(self):
-		self["detailList"].down()
-		self.updateDetailFrame()
+    def favoriteChoice(self):
+        weatherhelper.showFavoriteSelection(self.session, self.parseData)
 
-	def pageDown(self):
-		self["detailList"].pageDown()
-		self.updateDetailFrame()
+    def returnFavoriteChoice(self, favorite):
+        weatherhelper.handleFavoriteSelection(favorite, self.parseData)
 
-	def pageUp(self):
-		self["detailList"].pageUp()
-		self.updateDetailFrame()
+    def prevEntry(self):
+        self["detailList"].up()
+        self.updateDetailFrame()
 
-	def prevDay(self):
-		self.currdaydelta = (self.currdaydelta - 1) % len(self.dayList)
-		self.currdatehour = datetime.today().replace(minute=0, second=0, microsecond=0) + timedelta(days=self.currdaydelta)
-		callInThread(weatherhandler.reset, callback=self.parseData)
+    def nextEntry(self):
+        self["detailList"].down()
+        self.updateDetailFrame()
 
-	def nextDay(self):
-		self.currdaydelta = (self.currdaydelta + 1) % len(self.dayList)
-		self.currdatehour = datetime.today().replace(minute=0, second=0, microsecond=0) + timedelta(days=self.currdaydelta)
-		callInThread(weatherhandler.reset, callback=self.parseData)
+    def pageDown(self):
+        self["detailList"].pageDown()
+        self.updateDetailFrame()
 
-	def config(self):
-		self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
-		if self.detailFrameActive:
-			self.detailFrame.hideFrame()
-		self.session.openWithCallback(self.configFinished, WeatherSettingsViewNew)
+    def pageUp(self):
+        self["detailList"].pageUp()
+        self.updateDetailFrame()
 
-	def configFinished(self, result=None):
-		self.detailLevels = config.plugins.OAWeather.detailLevel.choices
-		self.detailLevelIdx = config.plugins.OAWeather.detailLevel.choices.index(
-			config.plugins.OAWeather.detailLevel.value
-		)
-		if self.detailFrameActive:
-			self.detailFrame.showFrame()
-		if self.old_weatherservice != config.plugins.OAWeather.weatherservice.value:
-			callInThread(weatherhandler.reset, callback=self.parseData)
-		else:
-			self.startRun()
+    def nextDay(self):
+        if not hasattr(self, 'dayList') or not self.dayList:
+            self.session.open(
+                MessageBox,
+                _("Weather data unavailable"),
+                MessageBox.TYPE_WARNING
+            )
+            return
 
-	def exit(self):
-		if self.detailFrameActive:
-			self.detailFrame.hide()
-			self.detailFrameActive = False
-		else:
-			self.session.deleteDialog(self.detailFrame)
-			self.close()
+        try:
+            self.currdaydelta = (self.currdaydelta + 1) % len(self.dayList)
+            self.currdatehour = datetime.today().replace(
+                minute=0, second=0, microsecond=0
+            ) + timedelta(days=self.currdaydelta)
+            self.updateDisplay()
+        except Exception as e:
+            logger.error(f"Weather day change error: {str(e)}")
+            self.session.open(
+                MessageBox,
+                _("Error changing day"),
+                MessageBox.TYPE_ERROR
+            )
+
+    def prevDay(self):
+        if not hasattr(self, 'dayList') or not self.dayList:
+            self.session.open(
+                MessageBox,
+                _("Weather data unavailable"),
+                MessageBox.TYPE_WARNING
+            )
+            return
+
+        try:
+            self.currdaydelta = (self.currdaydelta - 1) % len(self.dayList)
+            self.currdatehour = datetime.today().replace(
+                minute=0, second=0, microsecond=0
+            ) + timedelta(days=self.currdaydelta)
+            self.updateDisplay()
+        except Exception as e:
+            logger.error(f"Weather day change error: {str(e)}")
+            self.session.open(
+                MessageBox,
+                _("Error changing day"),
+                MessageBox.TYPE_ERROR
+            )
+
+    def updateDisplay(self):
+        if hasattr(self, 'dayList') and self.dayList:
+            self.updateSkinList()
+            self.updateMoonData()
+
+    def config(self):
+        self.old_weatherservice = config.plugins.OAWeather.weatherservice.value
+        if self.detailFrameActive:
+            self.detailFrame.hideFrame()
+        self.session.openWithCallback(self.configFinished, WeatherSettingsViewNew)
+
+    def configFinished(self, result=None):
+        self.detailLevels = config.plugins.OAWeather.detailLevel.choices
+        self.detailLevelIdx = config.plugins.OAWeather.detailLevel.choices.index(
+            config.plugins.OAWeather.detailLevel.value
+        )
+        if self.detailFrameActive:
+            self.detailFrame.showFrame()
+        if self.old_weatherservice != config.plugins.OAWeather.weatherservice.value:
+            callInThread(weatherhandler.reset, callback=self.parseData)
+        else:
+            self.startRun()
+
+    def exit(self):
+        if self.detailFrameActive:
+            self.detailFrame.hide()
+            self.detailFrameActive = False
+        else:
+            self.session.deleteDialog(self.detailFrame)
+            self.close()
 
 
 class OAWeatherFavorites(Screen):
-	def __init__(self, session):
-		self.skin = weatherhelper.loadSkin("OAWeatherFavorites")
-		Screen.__init__(self, session)
-		self.newFavList = weatherhelper.favoriteList[:]
-		self.addFavorite = False
-		self.currindex = 0
-		self.searchcity = ""
-		self.currFavorite = ("", 0, 0)
-		self.returnFavorite = ""
-		self["favoriteList"] = List()
-		self["headline"] = StaticText(_("Manage your favorites"))
-		self["key_red"] = StaticText(_("Delete"))
-		self["key_green"] = StaticText(_("Save"))
-		self["key_yellow"] = StaticText(_("Edit"))
-		self["key_blue"] = StaticText(_("Add"))
-		self["actions"] = ActionMap(
-			["OkCancelActions", "ColorActions"],
-			{
-				"ok": self.keyOk,
-				"red": self.keyRed,
-				"green": self.keyGreen,
-				"yellow": self.keyYellow,
-				"blue": self.keyBlue,
-				"cancel": self.keyExit
-			},
-			-1
-		)
-		self.onShown.append(self.onShownFinished)
+    def __init__(self, session):
+        self.skin = weatherhelper.loadSkin("OAWeatherFavorites")
+        Screen.__init__(self, session)
 
-	def onShownFinished(self):
-		self.updateFavoriteList()
+        self.favoritefile = OAWEATHER_FAV
+        self._initFile()
+        self.newFavList = weatherhelper.favoriteList[:]
+        self.selected_index = None
+        self.pending_changes = False
 
-	def updateFavoriteList(self):
-		skinList = []
-		for favorite in self.newFavList:
-			weathercity, lon, lat = favorite
-			skinList.append((weathercity, f"[lon={lon}, lat={lat}]"))
-		self["favoriteList"].updateList(skinList)
+        self["favoriteList"] = List(enableWrapAround=True)
+        self["headline"] = StaticText(_("Manage Favorites"))
+        self["key_red"] = StaticText(_("Delete"))
+        self["key_green"] = StaticText(_("Save"))
+        self["key_yellow"] = StaticText(_("Edit"))
+        self["key_blue"] = StaticText(_("Add"))
 
-	def returnCityname(self, weathercity):
-		if weathercity:
-			self.searchcity = weathercity
-			callInThread(self.citySearch, weathercity)
+        self["actions"] = ActionMap(
+            ["OAWeatherFavoritesActions", "ColorActions", "OkCancelActions"],
+            {
+                "ok": self.onSelect,
+                "cancel": self.onCancel,
+                "red": self.onDelete,
+                "green": self.onSave,
+                "yellow": self.onEdit,
+                "blue": self.startAddFavorite,
+                "up": self.onUp,
+                "down": self.onDown
+            },
+            -1
+        )
+        self.onShown.append(self.initScreen)
 
-	def citySearch(self, weathercity):
-		services = {"MSN": "msn", "OpenMeteo": "omw", "openweather": "owm"}
-		service = services.get(config.plugins.OAWeather.weatherservice.value, "msn")
-		apikey = config.plugins.OAWeather.apikey.value
-		if service == "owm" and len(apikey) < 32:
-			self.session.open(MessageBox, text=_("The API key for OpenWeatherMap is not defined or invalid.\nPlease verify your input data.\nOtherwise your settings won't be saved."), type=MessageBox.TYPE_WARNING)
-		else:
-			WI = Weatherinfo(service, apikey)
-			if WI.error:
-				print("[WeatherSettingsViewNew] Error in module 'citySearch': %s" % WI.error)
-				self.cityChoice((False, _("Error in Weatherinfo"), WI.error))
-			else:
-				geodataList = WI.getCitylist(weathercity, config.osd.language.value.replace('_', '-').lower(), count=15)
-				if WI.error or geodataList is None or len(geodataList) == 0:
-					print("[WeatherSettingsViewNew] Error in module 'citySearch': %s" % WI.error)
-					self.cityChoice((False, _("Error getting City ID"), _("City '%s' not found! Please try another wording." % weathercity)))
-				else:
-					cityList = []
-					for item in geodataList:
-						try:
-							cityList.append((item[0], item[1], item[2]))
-						except Exception:
-							print("[WeatherSettingsViewNew] Error in module 'showMenu': faulty entry in resultlist.")
-					self.cityChoice((True, cityList, ""))
+    def _initFile(self):
+        """Safely load a JSON file"""
+        try:
+            if not exists(self.favoritefile):
+                with open(self.favoritefile, 'w') as f:
+                    json.dump([], f)
+                chmod(self.favoritefile, 0o644)
+                logger.info(f"File creato: {self.favoritefile}")
+        except Exception as e:
+            logger.error(f"Errore creazione file: {str(e)}")
+            raise
 
-	def cityChoice(self, answer):
-		if answer[0] is True:
-			self.searchcity = ""
-			self.session.openWithCallback(self.returnCityChoice, ChoiceBox, title=_("Select your location"), list=tuple(answer[1]))
-		elif answer[0] is False:
-			self.session.open(MessageBox, text=answer[2], type=MessageBox.TYPE_WARNING, timeout=3)
-			self.session.openWithCallback(self.returnCityname, VirtualKeyBoard, title=_("Weather cityname (at least 3 letters):"), text=self.searchcity)
+    def initScreen(self):
+        """Initialize when screen becomes visible"""
+        self._refreshList()
+        self.checkCurrentLocation()
 
-	def returnCityChoice(self, answer):
-		if answer is not None:
-			weathercity, lon, lat = answer
-			location = (weatherhelper.reduceCityname(weathercity), lon, lat)
-			if self.addFavorite:
-				self.add2FavList(location)
-				self.addFavorite = False
-			else:
-				self.newFavList[self.currindex] = location
-			self.updateFavoriteList()
+    def _refreshList(self):
+        """Update the list of favorites"""
+        try:
+            list_items = [
+                (fav[0], "Lon: %.3f, Lat: %.3f" % (fav[1], fav[2]), idx)
+                for idx, fav in enumerate(self.newFavList)
+            ]
+            self["favoriteList"].setList(list_items)
+        except Exception as e:
+            logger.error("Update list error: %s" % str(e))
+            self.showError(_("Error updating list"))
 
-	def add2FavList(self, newcomer):
-		append = True
-		newFavList = []
-		for favorite in self.newFavList:
-			if not weatherhelper.isDifferentLocation(newcomer, favorite):  # newcomer contains new coordinates?
-				favorite = favorite if len(favorite[0]) > len(newcomer[0]) else newcomer  # use the one that has more information
-				append = False  # so don't append the newcomer
-			newFavList.append(favorite)
-		if append:
-			newFavList.append(newcomer)
-		self.newFavList = newFavList
+    def checkCurrentLocation(self):
+        """Highlight current location if present"""
+        current = config.plugins.OAWeather.weatherlocation.value
+        if current in self.newFavList:
+            idx = self.newFavList.index(current)
+            self["favoriteList"].setIndex(idx)
 
-	def keyRed(self):
-		current = self["favoriteList"].getCurrentIndex()
-		if self.newFavList and current is not None:
-			self.currFavorite = self.newFavList[current]
-			if weatherhelper.isDifferentLocation(self.currFavorite, config.plugins.OAWeather.weatherlocation.value):
-				msgtxt = _("Do you really want do delete favorite\n'%s'?" % self.currFavorite[0])
-				weatherhelper.saveFavorites()
-				self.session.openWithCallback(self.returnKeyRed, MessageBox, msgtxt, MessageBox.TYPE_YESNO, timeout=10, default=False)
-			else:
-				msgtxt = _("The favorite '%s' corresponds to the set weather city name and therefore cannot be deleted." % self.currFavorite[0])
-				self.session.open(MessageBox, msgtxt, MessageBox.TYPE_WARNING, timeout=3)
+    def startAddFavorite(self):
+        """Start adding a new favorite location"""
+        self.session.openWithCallback(
+            self.cityNameEntered,
+            VirtualKeyBoard,
+            title=_("Enter city name (e.g. 'Rome, IT')"),
+            text=""
+        )
 
-	def returnKeyRed(self, answer):
-		if answer is True and self.currFavorite in self.newFavList:
-			self.newFavList.remove(self.currFavorite)
-			self.updateFavoriteList()
+    def cityNameEntered(self, city_name):
+        """Handle the city name entered in VirtualKeyBoard"""
+        if city_name:
+            self._startCitySearch(city_name)
 
-	def keyYellow(self):
-		self.currindex = self["favoriteList"].getCurrentIndex()
-		if self.newFavList and self.currindex is not None:
-			weathercity = weatherhelper.isolateCityname(self.newFavList[self.currindex][0])
-			self.session.openWithCallback(self.returnCityname, VirtualKeyBoard, title=_("Weather cityname (at least 3 letters):"), text=weathercity)
+    def _startCitySearch(self, city_name):
+        """Start city search after name is entered"""
+        if city_name and len(city_name) >= 3:
+            weatherhelper.searchLocation(
+                city_name,
+                self._handleSearchResult,
+                self.session
+            )
+        else:
+            self._showMessage(_("Please enter at least 3 characters"), "warning")
 
-	def keyGreen(self):
-		weatherhelper.setFavoriteList(self.newFavList)
-		weatherhelper.saveFavorites()
+    def _handleSearchResult(self, result):
+        """Handle search results in different formats"""
+        if not result:
+            logger.debug("Search cancelled by user")
+            return
 
-		config.plugins.OAWeather.save()
-		config.save()
+        try:
+            logger.debug(f"Received search result: {type(result)} - {result}")
 
-		self.session.open(MessageBox, _("Favorites have been successfully saved!"), MessageBox.TYPE_INFO, timeout=2)
+            # CASE 1: Tuple with formatted string and separate data (MSN format)
+            if (isinstance(result, tuple) and len(result) == 2 and
+                    isinstance(result[0], str) and 'lon=' in result[0] and 'lat=' in result[0] and
+                    isinstance(result[1], (tuple, list)) and len(result[1]) == 3):
 
-	def keyBlue(self):
-		self.addFavorite = True
-		self.session.openWithCallback(self.returnCityname, VirtualKeyBoard, title=_("Weather cityname (at least 3 letters):"), text="")
+                logger.debug("MSN format detected")
+                formatted_str, data_tuple = result
+                city_name = data_tuple[0]
+                lon, lat = data_tuple[1], data_tuple[2]
 
-	def keyOk(self):
-		current = self["favoriteList"].getCurrentIndex()
-		returnFavorite = self.newFavList[current] if self.newFavList and current is not None else None
-		self.checkChanges(returnFavorite)
+            # CASE 2: String with coordinates in brackets
+            elif isinstance(result, str) and '[' in result and ']' in result:
+                logger.debug("String with coordinates detected")
+                city_part, coords_part = result.split('[', 1)
+                city_name = city_part.strip()
+                coords = coords_part.replace(']', '').strip()
 
-	def keyExit(self):
-		self.checkChanges(None)
+                if 'lon=' in coords and 'lat=' in coords:
+                    lon_str = coords.split('lon=')[1].split(',')[0].strip()
+                    lat_str = coords.split('lat=')[1].strip()
+                    lon = float(lon_str)
+                    lat = float(lat_str)
+                else:
+                    raise ValueError("Invalid coordinate format")
 
-	def checkChanges(self, returnFavorite):
-		if self.newFavList != weatherhelper.favoriteList:
-			self.returnFavorite = returnFavorite
-			msgtxt = _("Do you really want do exit without saving your modified favorite list?")
-			self.session.openWithCallback(self.returnCheckChanges, MessageBox, msgtxt, MessageBox.TYPE_YESNO, timeout=10, default=False)
-		else:
-			self.close(returnFavorite)
+            # CASE 3: Simple tuple (city, lon, lat)
+            elif isinstance(result, (tuple, list)) and len(result) == 3:
+                logger.debug("Simple tuple format detected")
+                city_name, lon, lat = result[0], result[1], result[2]
 
-	def returnCheckChanges(self, answer):
-		if answer is True:
-			self.close(self.returnFavorite)
+            # CASE 4: City name only (fallback)
+            elif isinstance(result, str):
+                logger.debug("City name only received")
+                city_name = result.strip()
+                lon, lat = 0.0, 0.0
+                self._showMessage(_("Coordinates not available for this location"), "warning")
+
+            else:
+                error_msg = f"Unsupported result format: {type(result)}"
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+
+            # Final validation
+            if not city_name:
+                error_msg = "Empty city name"
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+
+            logger.info(f"Adding new location: {city_name} ({lon}, {lat})")
+            self._addToFavorites(city_name, lon, lat)
+
+        except Exception as e:
+            error_msg = f"Error processing result: {str(e)} - Raw data: {result}"
+            logger.error(error_msg)
+            self._showMessage(_("Error processing location data"), "error")
+
+    def _addToFavorites(self, city, lon, lat):
+        """Add validated location to favorites with simplified city name"""
+        try:
+            # Normalize city name: take only the part before first comma
+            simple_city_name = city.split(',')[0].strip()
+
+            new_fav = [
+                simple_city_name,
+                float(lon),
+                float(lat)
+            ]
+
+            # Check for duplicates
+            for existing in self.newFavList:
+                if existing[0].lower() == simple_city_name.lower():
+                    self._showMessage(_("Location already exists"), "info")
+                    return
+                if abs(existing[1] - float(lon)) < 0.01 and abs(existing[2] - float(lat)) < 0.01:
+                    self._showMessage(_("Location with similar coordinates already exists"), "info")
+                    return
+
+            self.newFavList.append(new_fav)
+            self._refreshList()
+            self.pending_changes = True
+            logger.info(f"Added new favorite: {new_fav}")
+            self._showMessage(_("Location added successfully"), "info")
+
+        except ValueError as e:
+            logger.error(f"Invalid location data: {str(e)}")
+            self._showMessage(_("Invalid location coordinates"), "error")
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
+            self._showMessage(_("Error adding location"), "error")
+
+    def _showMessage(self, message, msg_type):
+        """Show messages to the user"""
+        msg_map = {
+            "info": MessageBox.TYPE_INFO,
+            "warning": MessageBox.TYPE_WARNING,
+            "error": MessageBox.TYPE_ERROR
+        }
+
+        if isinstance(msg_type, int):
+            msgtype = msg_type
+        else:
+            msgtype = msg_map.get(msg_type.lower(), MessageBox.TYPE_INFO)
+
+        self.session.open(
+            MessageBox,
+            message,
+            msgtype,
+            timeout=3
+        )
+
+    def onSelect(self):
+        try:
+            selected = self["favoriteList"].getCurrent()
+            if not selected:
+                return
+
+            logger.debug(f"Selected item RAW: {selected}")
+
+            # Get the original data from newFavList using the index
+            if isinstance(selected, (tuple, list)) and len(selected) >= 3:
+                location_data = self.newFavList[selected[2]]
+            else:
+                # Fallback if format is different
+                location_data = selected
+
+            logger.debug(f"Location data to save: {location_data}")
+
+            # Update all relevant config values
+            config.plugins.OAWeather.weathercity.value = location_data[0]
+            config.plugins.OAWeather.owm_geocode.value = f"{location_data[1]},{location_data[2]}"
+            config.plugins.OAWeather.weatherlocation.value = (location_data[0], location_data[1], location_data[2])
+
+            # Save config immediately
+            config.plugins.OAWeather.save()
+            configfile.save()
+
+            # Update weatherhelper favorites if needed
+            if location_data not in weatherhelper.favoriteList:
+                weatherhelper.addFavorite(location_data)
+
+            logger.info(f"Config updated to: {location_data[0]}")
+
+            # Reset weather data with new location
+            callInThread(weatherhandler.reset, location_data)
+
+            # Close and return selected location
+            self.close(location_data)
+
+        except Exception as e:
+            logger.error(f"Selection failed: {str(e)}")
+            self._showMessage(_("Error selecting location"), MessageBox.TYPE_ERROR)
+
+    def onCancel(self):
+        if self.pending_changes:
+            self.session.openWithCallback(
+                self._handleExitConfirmation,
+                MessageBox,
+                _("You have unsaved changes. Save before exiting?"),
+                MessageBox.TYPE_YESNO
+            )
+        else:
+            self.close(None)
+
+    def _handleExitConfirmation(self, result):
+        if result is None:
+            return
+        elif result:
+            self.onSave()
+        else:
+            self.close(None)
+
+    def onDelete(self):
+        """Delete selected favorite"""
+        current = self.getCurrentFavorite()
+        if current:
+            self.session.openWithCallback(
+                lambda result: self.confirmDelete(current, result),
+                MessageBox,
+                _("Delete {}?").format(current[0]),
+                MessageBox.TYPE_YESNO
+            )
+
+    def confirmDelete(self, favorite, confirmed):
+        """Delete location with full synchronization"""
+        if confirmed:
+            try:
+                # 1. Remove from both lists
+                if favorite in self.newFavList:
+                    self.newFavList.remove(favorite)
+                if favorite in weatherhelper.favoriteList:
+                    weatherhelper.favoriteList.remove(favorite)
+
+                # 2. Atomic save
+                weatherhelper.saveFavorites()  # Uses helper's method
+
+                # 3. Clear cache
+                if exists(CACHEFILE):
+                    remove(CACHEFILE)
+
+                # 4. Check if deleted was active location
+                current_loc = config.plugins.OAWeather.weatherlocation.value
+                if current_loc == favorite:
+                    config.plugins.OAWeather.weatherlocation.value = weatherhelper.locationDefault
+                    config.plugins.OAWeather.weathercity.value = weatherhelper.locationDefault[0]
+                    config.plugins.OAWeather.owm_geocode.value = f"{weatherhelper.locationDefault[1]},{weatherhelper.locationDefault[2]}"
+                    config.plugins.OAWeather.save()
+                    configfile.save()
+                    weatherhandler.reset(weatherhelper.locationDefault)
+
+                # 5. Sync all configs
+                weatherhelper.syncWithConfig()
+
+                # 6. Update UI
+                self._refreshList()
+                self._showMessage(_("Location deleted"), MessageBox.TYPE_INFO)
+
+            except Exception as e:
+                logger.error(f"Delete error: {str(e)}")
+                self._showMessage(_("Delete failed"), MessageBox.TYPE_ERROR)
+
+    def onSave(self):
+        try:
+            # Update both lists
+            weatherhelper.favoriteList = self.newFavList[:]
+
+            weatherhelper.saveFavorites()
+
+            if exists(CACHEFILE):
+                remove(CACHEFILE)
+
+            self.pending_changes = False
+            self._showMessage(_("Favorites saved successfully"), "info")
+
+            weatherhelper.updateConfigChoices()
+
+        except Exception as e:
+            logger.error(f"Save error: {str(e)}")
+            self._showMessage(_("Error saving favorites"), "error")
+
+    def onEdit(self):
+        """Edit selected item"""
+        current = self.getCurrentFavorite()
+        if current:
+            self.selected_index = self["favoriteList"].getIndex()
+            self.session.openWithCallback(
+                self.handleEditResult,
+                VirtualKeyBoard,
+                title=_("Edit city name"),
+                text=current[0]
+            )
+
+    def handleEditResult(self, new_name):
+        """Handle edit result"""
+        if new_name and self.selected_index is not None:
+            try:
+                old = self.newFavList[self.selected_index]
+                self.newFavList[self.selected_index] = (new_name, old[1], old[2])
+                self.pending_changes = True
+                self._refreshList()
+            except IndexError:
+                self.showError(_("Invalid selection"))
+
+    def getCurrentFavorite(self):
+        """Return currently selected favorite"""
+        idx = self["favoriteList"].getIndex()
+        if 0 <= idx < len(self.newFavList):
+            return self.newFavList[idx]
+        return None
+
+    def handleExitConfirmation(self, result, return_value):
+        """Handle exit decision"""
+        if result is None:
+            return
+        elif result:
+            self.onSave()
+        else:
+            self.close(return_value)
+
+    def onUp(self):
+        self["favoriteList"].up()
+
+    def onDown(self):
+        self["favoriteList"].down()
+
+
+class TestScreen(Screen):
+    """Does not affect performance (used only in debug)"""
+    skin = """
+            <screen name="TestScreen"   position="center,center" size="1200,650" backgroundColor="#00000000"  transparent="0"  >
+                <eLabel position="0,0" size="1200,650" backgroundColor="#00000000"    transparent="0" zPosition="0" />
+                <ePixmap position="10,590" zPosition="3" size="240,50" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/OAWeather/Images/red.png" transparent="1" alphatest="blend" />
+                <widget name="meinelist" position="100,20" size="1000,430" font="Regular;30" itemHeight="45"  backgroundColor="#00000000" foregroundColor="#00ffffff" transparent="0" zPosition="3" scrollbarMode="showOnDemand" />
+                <widget name="status" font="Regular; 25"  position="100,470" size="1000,40" foregroundColor ="#0000ff00" backgroundColor="#00000000" transparent="0"  zPosition="3" halign="center" valign="center" />
+                <widget source="key_red" render="Label" position="10,570" zPosition="5" size="240,50" font="Regular;30" halign="center" valign="center" backgroundColor="#00313040" foregroundColor="#00ffffff" transparent="1" />
+            </screen>
+            """
+
+    def __init__(self, session, citylisttest, okCallback=None):
+        self.session = session
+        Screen.__init__(self, session)
+        self.citylisttest = citylisttest
+        self.okCallback = okCallback
+        self['meinelist'] = MenuList(citylisttest)
+        self.status = ""
+        self["status"] = Label()
+        self["actions"] = ActionMap(
+            ["OkCancelActions", "ColorActions"],
+            {
+                "ok": self.selectCity,
+                "cancel": self.close,
+                "red": self.close,
+                "green": self.close,
+                "yellow": self.close
+            },
+            -1
+        )
+        self['key_red'] = Label(_('exit'))
+        self['status'].setText(_("Select the City and Press Ok"))
+
+    def selectCity(self):
+        selected_city_tuple = self['meinelist'].l.getCurrentSelection()
+        if selected_city_tuple:
+            selected_city = selected_city_tuple[0]
+            self.selected_city = selected_city
+            if self.okCallback is not None:
+                self.okCallback(selected_city)
+            self.close()
 
 
 weatherhandler = WeatherHandler()

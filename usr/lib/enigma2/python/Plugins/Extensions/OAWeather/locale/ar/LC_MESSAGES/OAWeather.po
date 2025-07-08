@@ -1,214 +1,243 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: OAWeather\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-01-15 16:34+0100\n"
-"PO-Revision-Date: 2022-05-25 21:18+0000\n"
-"Last-Translator: Bader <fentanyl100@gmail.com>\n"
+"POT-Creation-Date: 2025-07-03 13:14+0200\n"
+"Last-Translator: by Shabah Net>\n"
 "Language-Team: Arabic <https://hosted.weblate.org/projects/openatv/metrixhd/ar/>\n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 4.13-dev\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+"X-Generator: Poedit 3.0.1\n"
+"X-SourceCharset: UTF-8\n"
 
 #, python-format
 msgid "%d Minutes"
-msgstr ""
+msgstr "%d دقائق"
 
 msgid "Cache data"
-msgstr ""
+msgstr "البيانات المخزنة"
 
 msgid "Celsius"
-msgstr "درجة مئوية"
+msgstr "سيلزيوس"
 
 msgid "Choose the icon set. You need to create an additional set here: /usr/share/enigma2/WeatherIconSets/NAME."
-msgstr ""
+msgstr "اختر مجموعة الأيقونات. يجب عليك إنشاء مجموعة إضافية هنا: /usr/share/enigma2/WeatherIconSets/NAME."
 
 msgid "Choose whether the 'night switch' should be activated or not. Some icons are then displayed as night icons with moon."
-msgstr ""
+msgstr "اختر ما إذا كان يجب تفعيل 'التبديل الليلي' أم لا. سيتم عرض بعض الأيقونات كأيقونات ليلية مع القمر."
 
 #, python-format
 msgid "City '%s' not found! Please try another wording."
-msgstr ""
+msgstr "المدينة '%s' غير موجودة! يرجى تجربة صياغة أخرى."
 
 msgid "Current Weather"
-msgstr ""
-
-#, fuzzy
-msgid "Default"
-msgstr "الافتراضية"
+msgstr "الطقس الحالي"
 
 msgid "Defaults"
-msgstr "الافتراضية"
+msgstr "الافتراضيات"
 
 msgid "Disabled"
-msgstr ""
+msgstr "معطل"
 
 msgid "East"
-msgstr ""
+msgstr "شرق"
 
-#, fuzzy
 msgid "Enable Debug"
-msgstr "تمكين"
+msgstr "تمكين التصحيح"
 
 msgid "Enabled"
-msgstr "تمكين"
+msgstr "ممكّن"
 
 msgid "Enter a personalized API key for use with OpenWeatherMap (https://openweathermap.org/)."
-msgstr ""
+msgstr "أدخل مفتاح API مخصص للاستخدام مع OpenWeatherMap (https://openweathermap.org/)."
 
 msgid "Enter the location for your weather forecasts."
-msgstr ""
+msgstr "أدخل الموقع لتوقعات الطقس الخاصة بك."
 
 msgid "Error getting City ID"
-msgstr ""
+msgstr "خطأ في الحصول على معرف المدينة"
 
 msgid "Error in Weatherinfo"
-msgstr ""
+msgstr "خطأ في معلومات الطقس"
 
 msgid "Fahrenheit"
 msgstr "فهرنهايت"
 
 msgid "Feels like"
-msgstr ""
+msgstr "يشعر وكأنه"
 
 msgid "Humidity"
-msgstr ""
+msgstr "الرطوبة"
 
 msgid "Location Selection"
-msgstr ""
+msgstr "اختيار الموقع"
 
 msgid "MSN weather"
-msgstr ""
+msgstr "طقس MSN"
 
 msgid "Metric unit for wind speed"
-msgstr ""
+msgstr "وحدة مترية لسرعة الرياح"
 
 msgid "North"
-msgstr ""
+msgstr "شمال"
 
 msgid "Northeast"
-msgstr ""
+msgstr "شمال شرق"
 
 msgid "Northwest"
-msgstr ""
+msgstr "شمال غرب"
 
 msgid "Open-Meteo Wetter"
-msgstr ""
+msgstr "Open-Meteo"
 
 msgid "OpenWeatherMap"
-msgstr ""
+msgstr "OpenWeatherMap"
 
 msgid "Precipitation"
-msgstr ""
+msgstr "هطول الأمطار"
 
 msgid "Refresh interval"
-msgstr ""
+msgstr "الفاصل الزمني للتحديث"
 
 msgid "Search for City ID please wait..."
-msgstr ""
+msgstr "جاري البحث عن معرف المدينة، يرجى الانتظار..."
 
 msgid "Search for your City"
-msgstr ""
+msgstr "ابحث عن مدينتك"
 
 msgid "Select 'Yes' to enable add debug output to log."
-msgstr ""
+msgstr "اختر 'نعم' لتمكين إضافة مخرجات التصحيح إلى السجل."
 
 msgid "Select 'Yes' to enable the addition of Weather."
-msgstr ""
+msgstr "اختر 'نعم' لتمكين إضافة الطقس."
 
 msgid "Select Your Location"
-msgstr "حدد موقعك"
+msgstr "اختر موقعك"
 
 msgid "Select the metric unit for wind speed to be used for wind displays. This has no effect on the imperial unit 'mph'."
-msgstr ""
+msgstr "اختر الوحدة المترية لسرعة الرياح لاستخدامها في عرض الرياح. لا يؤثر هذا على الوحدة الإمبراطورية 'ميل/ساعة'."
 
 msgid "Select the preferred weather service to supply the weather information."
-msgstr ""
+msgstr "اختر خدمة الطقس المفضلة لتوفير معلومات الطقس."
 
 msgid "Select the temperature unit to be used for temperature displays."
-msgstr ""
+msgstr "اختر وحدة درجة الحرارة لاستخدامها في عرض درجات الحرارة."
 
 msgid "Select this option to save that last obtained weather data locally. This is used to initialize the data immediately after restart while updated data is being fetched."
-msgstr ""
+msgstr "اختر هذا الخيار لحفظ آخر بيانات الطقس التي تم الحصول عليها محليًا. يُستخدم هذا لتهيئة البيانات فورًا بعد إعادة التشغيل أثناء جلب البيانات المحدثة."
 
 msgid "Set default values"
-msgstr ""
+msgstr "تعيين القيم الافتراضية"
 
 msgid "Show Weather Forecast"
-msgstr ""
+msgstr "إظهار توقعات الطقس"
 
 msgid "South"
-msgstr ""
+msgstr "جنوب"
 
 msgid "Southeast"
-msgstr ""
+msgstr "جنوب شرق"
 
 msgid "Southwest"
-msgstr ""
+msgstr "جنوب غرب"
 
 msgid "Specify how often Weather retrieves its data from the server. 'Once' means the data will loaded only once after a GUI or system start."
-msgstr ""
+msgstr "حدد عدد المرات التي يسترجع فيها الطقس بياناته من الخادم. 'مرة واحدة' تعني أن البيانات ستُحمّل مرة واحدة فقط بعد بدء تشغيل واجهة المستخدم أو النظام."
 
 msgid "Temperature unit"
-msgstr ""
+msgstr "وحدة درجة الحرارة"
 
 msgid ""
 "The API key for OpenWeatherMap is not defined or invalid.\n"
 "Please verify your input data.\n"
 "Otherwise your settings won't be saved."
 msgstr ""
+"مفتاح API لـ OpenWeatherMap غير معرف أو غير صالح.\n"
+"يرجى التحقق من البيانات التي أدخلتها.\n"
+"وإلا فلن يتم حفظ إعداداتك."
 
 msgid "The city name is too short. More than 2 characters are needed for search."
-msgstr ""
+msgstr "اسم المدينة قصير جدًا. يلزم أكثر من حرفين للبحث."
 
 msgid "Today"
-msgstr ""
+msgstr "اليوم"
 
 msgid "Update"
-msgstr ""
+msgstr "تحديث"
 
 msgid "Weather API key"
-msgstr ""
+msgstr "مفتاح API الطقس"
 
-#, fuzzy
 msgid "Weather Plugin"
-msgstr "إعدادات الطقس"
+msgstr "إضافة الطقس"
 
 msgid "Weather Settings Actions"
-msgstr ""
+msgstr "إجراءات إعدادات الطقس"
 
 msgid "Weather city name"
-msgstr ""
+msgstr "اسم مدينة الطقس"
 
 msgid "Weather icon night switch"
-msgstr ""
+msgstr "تبديل أيقونات الطقس الليلية"
 
-#, fuzzy
 msgid "Weather icon set"
-msgstr "إعدادات الطقس"
+msgstr "مجموعة أيقونات الطقس"
 
 msgid "Weather service"
-msgstr ""
+msgstr "خدمة الطقس"
 
 msgid "Weather settings"
 msgstr "إعدادات الطقس"
 
 msgid "West"
-msgstr ""
+msgstr "غرب"
 
 msgid "km/h"
-msgstr ""
+msgstr "كم/ساعة"
 
 msgid "m/s"
-msgstr ""
+msgstr "م/ث"
 
 msgid "n/a"
-msgstr ""
+msgstr "غير متوفر"
+
+msgid "Wind speed metric unit:"
+msgstr "وحدة سرعة الرياح"
+
+msgid "Weather icon set :"
+msgstr "مجموعة أيقونات الطقس"
+
+msgid "Enabled :"
+msgstr "مفعل"
+
+msgid "Weather service :"
+msgstr "خدمة الطقس"
+
+msgid "Weather city name :"
+msgstr "اسم مدينة الطقس"
+
+msgid "Weather API key :"
+msgstr "مفتاح API للطقس"
+
+msgid "Temperature unit :"
+msgstr "وحدة درجة الحرارة"
+
+msgid "Weather icon night switch :"
+msgstr "تبديل أيقونات الطقس الليلية"
+
+msgid "Refresh interval :"
+msgstr "فاصل التحديث"
+
+msgid "Cache data :"
+msgstr "بيانات الكاش"
+
+msgid "Enable Debug :"
+msgstr "تفعيل التصحيح"
+
+#, fuzzy
+msgid "Default"
+msgstr "افتراضي"

@@ -6,400 +6,416 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: OAWeather 1.1\n"
+"Project-Id-Version: OAWeather\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-08 11:55+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2025-07-08 11:54+0200\n"
+"PO-Revision-Date: 2025-07-08 11:54+0200\n"
+"Last-Translator: milan58 <milan58>\n"
+"Language-Team: \n"
+"Language: sr@latin\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.6\n"
-"X-Poedit-Basepath: ..\n"
+"X-Poedit-Basepath: ../../..\n"
 "X-Poedit-SearchPath-0: plugin.py\n"
 
 #: plugin.py:90
 msgid "Default"
-msgstr ""
+msgstr "Zadano"
 
 #: plugin.py:104
 msgid "Disabled"
-msgstr ""
+msgstr "Onemogući"
 
 #: plugin.py:104
 #, python-format
 msgid "%d Minutes"
-msgstr ""
+msgstr "%d Minuta"
 
 #: plugin.py:112
 msgid "More Details / Smaller font"
-msgstr ""
+msgstr "Više Detalja/Manje Slovo"
 
 #: plugin.py:112
 msgid "Less details / Larger font"
-msgstr ""
+msgstr "Manje detalja/Veća slova"
 
 #: plugin.py:113
 msgid "Celsius"
-msgstr ""
+msgstr "Celzius"
 
 #: plugin.py:113
 msgid "Fahrenheit"
-msgstr ""
+msgstr "Fahrenheit"
 
 #: plugin.py:114
 msgid "km/h"
-msgstr ""
+msgstr "km/h"
 
 #: plugin.py:114
 msgid "m/s"
-msgstr ""
+msgstr "m/s"
 
 #: plugin.py:116
 msgid "MSN weather"
-msgstr ""
+msgstr "MSN prognoza"
 
 #: plugin.py:116
 msgid "Open-Meteo Wetter"
-msgstr ""
+msgstr "Otvori-Vremensku Prognozu"
 
 #: plugin.py:116
 msgid "OpenWeatherMap"
-msgstr ""
+msgstr "OpenWeatherMap"
 
 #: plugin.py:178
 msgid "No locations found"
-msgstr ""
+msgstr "Nije pronađena lokacija"
 
 #: plugin.py:187 plugin.py:281 plugin.py:485
 msgid "Select location"
-msgstr ""
+msgstr "Izaberi Lokaciju"
 
 #: plugin.py:471
 msgid "Setup"
-msgstr ""
+msgstr "Podešavanje"
 
 #: plugin.py:482 plugin.py:1723
 msgid "Save"
-msgstr ""
+msgstr "Sačuvaj"
 
 #: plugin.py:483
 msgid "Add Fav"
-msgstr ""
+msgstr "Dodaj Favorit"
 
 #: plugin.py:484
 msgid "Defaults"
-msgstr ""
+msgstr "Zadani"
 
 #: plugin.py:511 plugin.py:685
 msgid "Enabled :"
-msgstr ""
+msgstr "Omogući:"
 
 #: plugin.py:513 plugin.py:687
 msgid "Weather service :"
-msgstr ""
+msgstr "Servis Prognoze:"
 
 #: plugin.py:514 plugin.py:530 plugin.py:688
 msgid "Weather city name :"
-msgstr ""
+msgstr "Vremenska prognoza grada:"
 
 #: plugin.py:515 plugin.py:534 plugin.py:689
 msgid "Weather API key :"
-msgstr ""
+msgstr "Weather API key :"
 
 #: plugin.py:516 plugin.py:690
 msgid "Temperature unit :"
-msgstr ""
+msgstr "Temperaturna jedinica:"
 
 #: plugin.py:517
 msgid "Wind speed metric unit:"
-msgstr ""
+msgstr "Brzina vetra metrička jedinica:"
 
 #: plugin.py:518 plugin.py:691
 msgid "Weather icon set :"
-msgstr ""
+msgstr "Ikone vremenske prognoze:"
 
 #: plugin.py:519 plugin.py:692
 msgid "Weather icon night switch :"
-msgstr ""
+msgstr "Promena noćne ikone vremenske prognoze:"
 
 #: plugin.py:520 plugin.py:693
 msgid "Refresh interval :"
-msgstr ""
+msgstr "Interval Osvežavanja:"
 
 #: plugin.py:521 plugin.py:694
 msgid "Cache data :"
-msgstr ""
+msgstr "Keš podataka:"
 
 #: plugin.py:522 plugin.py:695
 msgid "Enable Debug :"
-msgstr ""
+msgstr "Otvori Degub:"
 
 #: plugin.py:531 plugin.py:538
 msgid "Please enter a valid city name."
-msgstr ""
+msgstr "Unesite važeće ime grada."
 
 #: plugin.py:551
 msgid "City name must be at least 3 characters"
-msgstr ""
+msgstr "Ime grada mora imati najmanje 3 znaka"
 
 #: plugin.py:578 plugin.py:719
 msgid "Location already in favorites"
-msgstr ""
+msgstr "Lokacija je već u favoritima"
 
 #: plugin.py:601
 msgid "Invalid location format"
-msgstr ""
+msgstr "Nevažeći format lokacije"
 
 #: plugin.py:609 plugin.py:1867
 msgid "Error processing location data"
-msgstr ""
+msgstr "Greška u obradi podataka o lokaciji"
 
 #: plugin.py:697
 msgid "Standard fertig"
-msgstr ""
+msgstr "Standard gotov"
 
 #: plugin.py:713
 msgid "Location added to favorites"
-msgstr ""
+msgstr "Lokacija dodata u favorite"
 
 #: plugin.py:727
 msgid "Error saving location"
-msgstr ""
+msgstr "Greška pri čuvanju lokacije"
 
 #: plugin.py:754
 msgid "North"
-msgstr ""
+msgstr "Severni"
 
 #: plugin.py:754
 msgid "Northeast"
-msgstr ""
+msgstr "Severo Istočni"
 
 #: plugin.py:754
 msgid "East"
-msgstr ""
+msgstr "Istočni"
 
 #: plugin.py:754
 msgid "Southeast"
-msgstr ""
+msgstr "Jugo Istočni"
 
 #: plugin.py:754
 msgid "South"
-msgstr ""
+msgstr "Južni"
 
 #: plugin.py:754
 msgid "Southwest"
-msgstr ""
+msgstr "Jugo Zapadni"
 
 #: plugin.py:754
 msgid "West"
-msgstr ""
+msgstr "Zapadni"
 
 #: plugin.py:754
 msgid "Northwest"
-msgstr ""
+msgstr "Severo Zapadni"
 
 #: plugin.py:924
 msgid "Precipitation"
-msgstr ""
+msgstr "Padavine"
 
 #: plugin.py:925
 msgid "Humidity"
-msgstr ""
+msgstr "Vlažnost"
 
 #: plugin.py:926
 msgid "Feels like"
-msgstr ""
+msgstr "Oseća se kao"
 
 #: plugin.py:940 plugin.py:989
 msgid "Weather Plugin"
-msgstr ""
+msgstr "Plugin Prognoze"
 
 #: plugin.py:940
 msgid "Show Weather Forecast"
-msgstr ""
+msgstr "Predviđena Vremenska Prognoza"
 
 #: plugin.py:988 plugin.py:1048 plugin.py:1185
 msgid "n/a"
-msgstr ""
+msgstr "n/a"
 
 #: plugin.py:990
 msgid "Menu"
-msgstr ""
+msgstr "Meni"
 
 #: plugin.py:992
-msgid "GREEN: MANAGEMENT FAVORITES | MENU: SETUP | BLUE: HOME"
+msgid "GREEN: MANAGEMENT FAVORITES | MENU: SETUP"
 msgstr ""
 
 #: plugin.py:993 plugin.py:1195
 msgid "Update"
-msgstr ""
+msgstr "Ažurirano"
 
 #: plugin.py:994
 msgid "Current Weather"
-msgstr ""
+msgstr "Trenutna Prognoza"
 
 #: plugin.py:995 plugin.py:1268
 msgid "Today"
-msgstr ""
+msgstr "Danas"
 
 #: plugin.py:996 plugin.py:1204
 msgid "Exit"
-msgstr ""
+msgstr "Izlaz"
 
 #: plugin.py:997 plugin.py:1205
 msgid "Chose favorite"
-msgstr ""
+msgstr "Izaberi Favorit"
 
 #: plugin.py:998 plugin.py:1206
 msgid "Previous favorite"
-msgstr ""
+msgstr "Predhodni Favorit"
 
 #: plugin.py:999 plugin.py:1207
 msgid "Next favorite"
-msgstr ""
+msgstr "Sledeći Favorit"
 
 #: plugin.py:1000
 msgid "View details"
-msgstr ""
+msgstr "Prikaz detalja"
 
 #: plugin.py:1001
 msgid "Settings"
-msgstr ""
+msgstr "Postavke"
 
 #: plugin.py:1023
 msgid "Loading weather data..."
-msgstr ""
+msgstr "Učitavanje vremenskih podataka..."
 
 #: plugin.py:1038 plugin.py:1289 plugin.py:1367 plugin.py:1635 plugin.py:1658
 msgid "Weather data unavailable"
-msgstr ""
+msgstr "Vremenski podaci nisu dostupni"
 
 #: plugin.py:1144 plugin.py:1147
 msgid "N/A"
-msgstr ""
+msgstr "N/A"
 
 #: plugin.py:1192
 msgid "Weather Plugin Detailview"
-msgstr ""
+msgstr "Vremenska Prognoza Plugin Detalji"
 
 #: plugin.py:1208
 msgid "Day +/-"
-msgstr ""
+msgstr "Dan +/-"
 
 #: plugin.py:1209
 msgid "Details +/-"
-msgstr ""
+msgstr "Detalji +/-"
 
 #: plugin.py:1210
 msgid "Glass"
-msgstr ""
+msgstr "Staklo"
 
 #: plugin.py:1287
 msgid "No data"
-msgstr ""
+msgstr "Nema podataka"
 
 #: plugin.py:1290
 msgid "Try refreshing or check settings"
-msgstr ""
+msgstr "Pokušajte da osvežite ili proverite podešavanja"
 
 #: plugin.py:1650 plugin.py:1673
 msgid "Error changing day"
-msgstr ""
+msgstr "Greška menja dan"
 
 #: plugin.py:1721
 msgid "Manage Favorites"
-msgstr ""
+msgstr "Upravljanje Favoritima"
 
 #: plugin.py:1722
 msgid "Delete"
-msgstr ""
+msgstr "Izbriši"
 
 #: plugin.py:1724
 msgid "Edit"
-msgstr ""
+msgstr "Uredi"
 
 #: plugin.py:1725
 msgid "Add"
-msgstr ""
+msgstr "Dodaj"
 
 #: plugin.py:1770
 msgid "Error updating list"
-msgstr ""
+msgstr "Lista ažuriranja grešaka"
 
 #: plugin.py:1784
 msgid "Enter city name (e.g. 'Rome, IT')"
-msgstr ""
+msgstr "Unesite ime grada (npr. 'Rim, IT')"
 
 #: plugin.py:1802
 msgid "Please enter at least 3 characters"
-msgstr ""
+msgstr "Molimo Vas da unesete najmanje 3 znaka"
 
 #: plugin.py:1848
 msgid "Coordinates not available for this location"
-msgstr ""
+msgstr "Koordinate nisu dostupne za ovu lokaciju"
 
 #: plugin.py:1884
 msgid "Location already exists"
-msgstr ""
+msgstr "Lokacija već postoji"
 
 #: plugin.py:1887
 msgid "Location with similar coordinates already exists"
-msgstr ""
+msgstr "Lokacija sa sličnim koordinatama već postoji"
 
 #: plugin.py:1894
 msgid "Location added successfully"
-msgstr ""
+msgstr "Lokacija je uspešno dodana"
 
 #: plugin.py:1898
 msgid "Invalid location coordinates"
-msgstr ""
+msgstr "Neispravne koordinate lokacije"
 
 #: plugin.py:1901
 msgid "Error adding location"
-msgstr ""
+msgstr "Greška pri dodavanju lokacije"
 
 #: plugin.py:1963
 msgid "Error selecting location"
-msgstr ""
+msgstr "Greška pri izboru lokacije"
 
 #: plugin.py:1970
 msgid "You have unsaved changes. Save before exiting?"
-msgstr ""
+msgstr "Imate nesačuvane promene. Sačuvaj pre izlaska?"
 
 #: plugin.py:1991
 msgid "Delete {}?"
-msgstr ""
+msgstr "Izbrisati {}?"
 
 #: plugin.py:2027
 msgid "Location deleted"
-msgstr ""
+msgstr "Lokacija izbrisana"
 
 #: plugin.py:2031
 msgid "Delete failed"
-msgstr ""
+msgstr "Brisanje neuspešno"
 
 #: plugin.py:2044
 msgid "Favorites saved successfully"
-msgstr ""
+msgstr "Favoriti sačuvani uspešno"
 
 #: plugin.py:2050
 msgid "Error saving favorites"
-msgstr ""
+msgstr "Greška pri čuvanju favorita"
 
 #: plugin.py:2060
 msgid "Edit city name"
-msgstr ""
+msgstr "Uredi ime grada"
 
 #: plugin.py:2073
 msgid "Invalid selection"
-msgstr ""
+msgstr "Nevažeći izbor"
 
 #: plugin.py:2129
 msgid "exit"
-msgstr ""
+msgstr "izlaz"
 
 #: plugin.py:2130
 msgid "Select the City and Press Ok"
-msgstr ""
+msgstr "Izaberite grad i pritisnite OK"
+
+#~ msgid "Press Key Green or Menu for Setup"
+#~ msgstr "Pritisnite Taster Zeleni ili Meni za Podešavanje"
+
+#~ msgid "View on map"
+#~ msgstr "Pogledaj na mapi"
+
+#~ msgid "Set as current"
+#~ msgstr "Postavi kao trenutni"
+
+#~ msgid "Discard changes"
+#~ msgstr "Odbaci promene"
+
+#~ msgid "Additional Options"
+#~ msgstr "Dodatne Opcije"
