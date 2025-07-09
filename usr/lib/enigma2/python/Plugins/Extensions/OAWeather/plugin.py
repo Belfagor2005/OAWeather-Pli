@@ -460,12 +460,15 @@ class WeatherSettingsViewNew(ConfigListScreen, Screen):
 
     def __init__(self, session):
         self.session = session
-        skintext = ""
-        xml = parse(join(PLUGINPATH, "skinconfig.xml")).getroot()
-        for screen in xml.findall('screen'):
-            if screen.get("name") == "WeatherSettingsViewNew":
-                skintext = tostring(screen).decode()
-        self.skin = skintext
+        self.skin = weatherhelper.loadSkin("WeatherSettingsViewNew")
+        """
+        # skintext = ""
+        # xml = parse(join(PLUGINPATH, "skinconfig.xml")).getroot()
+        # for screen in xml.findall('screen'):
+            # if screen.get("name") == "WeatherSettingsViewNew":
+                # skintext = tostring(screen).decode()
+        # self.skin = skintext
+        """
         Screen.__init__(self, session)
         self.setTitle(_('Setup'))
         self.status = ""
@@ -944,36 +947,38 @@ class OAWeatherPlugin(Screen):
 
     def __init__(self, session):
         logger.info("OAWeatherPlugin initialized")
-        params = {
-            "picpath": join(PLUGINPATH, "Images")
-        }
-        skintext = ""
-        xml = None
+        """
+        # skintext = ""
 
-        width = screenwidth.width()
-        if width >= 1920:
-            xmlpath = join(PLUGINPATH, "skinfhd.xml")
-        elif width <= 1280:
-            xmlpath = join(PLUGINPATH, "skin.xml")
-        else:
-            xmlpath = None  # No matching skin
+        # params = {
+            # "picpath": join(PLUGINPATH, "Images")
+        # }
+        # xml = None
+        # width = screenwidth.width()
+        # if width >= 1920:
+            # xmlpath = join(PLUGINPATH, "skinfhd.xml")
+        # elif width <= 1280:
+            # xmlpath = join(PLUGINPATH, "skin.xml")
+        # else:
+            # xmlpath = None  # No matching skin
 
-        if xmlpath and exists(xmlpath):
-            xml = parse(xmlpath).getroot()
+        # if xmlpath and exists(xmlpath):
+            # xml = parse(xmlpath).getroot()
 
-        if xml is not None:
-            for screen in xml.findall("screen"):
-                if screen.get("name") == "OAWeatherPlugin":
-                    skintext = tostring(screen).decode()
-                    for key in params:
-                        try:
-                            skintext = skintext.replace("{%s}" % key, params[key])
-                        except Exception as e:
-                            print("Error replacing key: %s -> %s" % (key, str(e)))
-                    break
+        # if xml is not None:
+            # for screen in xml.findall("screen"):
+                # if screen.get("name") == "OAWeatherPlugin":
+                    # skintext = tostring(screen).decode()
+                    # for key in params:
+                        # try:
+                            # skintext = skintext.replace("{%s}" % key, params[key])
+                        # except Exception as e:
+                            # print("Error replacing key: %s -> %s" % (key, str(e)))
+                    # break
 
-        self.skin = skintext
-
+        # self.skin = skintext
+        """
+        self.skin = weatherhelper.loadSkin("OAWeatherPlugin")
         Screen.__init__(self, session)
 
         try:
