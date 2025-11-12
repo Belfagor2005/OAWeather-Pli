@@ -13,26 +13,24 @@
 #                                                                                                       #
 #########################################################################################################
 
-# from __future__ import unicode_literals
-
-from datetime import datetime, timedelta
-from json import dump
-from time import gmtime, strftime
-from xml.etree.ElementTree import Element, tostring
-import argparse
-import json
 import re
 import sys
 import threading
+from json import dump, loads
+from datetime import datetime, timedelta
+from time import gmtime, strftime
+from xml.etree.ElementTree import Element, tostring
+import argparse
 
-PY3 = sys.version_info.major >= 3
+
+PY3 = sys.version_info[0] >= 3
 
 if PY3:
 	unicode = str
 	from urllib.request import urlopen
-
 else:
 	from urllib2 import urlopen
+
 
 MODULE_NAME = __name__.split(".")[-1]
 SOURCES = ["msn", "omw", "owm"]  # supported sourcecodes (the order must not be changed)
@@ -41,13 +39,16 @@ DESTINATIONS = ["yahoo", "meteo"]  # supported iconcodes (the order must not be 
 
 def parser_thread(obj):
 	print("parser_thread")
-	obj.parser()
-	if obj.callback:
-		if obj.error:
-			obj.callback(None, obj.error)
-		else:
-			info = obj.parser()
-			obj.callback(info, None)
+	try:
+		info = obj.parser()
+		if obj.callback:
+			if obj.error:
+				obj.callback(None, obj.error)
+			else:
+				obj.callback(info, None)
+	except Exception as e:
+		if obj.callback:
+			obj.callback(None, str(e))
 
 
 def add_short_codes(original_dict):
@@ -90,8 +91,8 @@ class Weatherinfo:
 			"n410": ("9", "Q"), "n411": ("5", "W"), "n412": ("14", "V"), "n420": ("9", "Q"),
 			"n421": ("5", "W"), "n422": ("14", "W"), "n430": ("12", "Q"), "n431": ("5", "W"),
 			"n432": ("15", "W"), "n440": ("4", "0"), "n500": ("29", "I"), "n600": ("20", "E"),
-			"n603": ("10", "U"), "n605": ("17", "X"), "n705": ("17", "X"), "n900": ("21", "M"),
-			"n905": ("17", "X"), "n907": ("21", "M"),
+			"n603": ("10", "U"), "n605": ("17", "X"), "n705": ("17", "X"), "n905": ("17", "X"),
+			"n907": ("21", "M"), "n900": ("21", "M"),
 
 			# lululla added
 			"d00": ("32", "B"), "d10": ("34", "B"), "d20": ("30", "H"), "d21": ("12", "Q"),
@@ -278,7 +279,7 @@ class Weatherinfo:
 
 	def convert2icon(self, src, code):
 		print("convert2icon")
-		print(f"[DEBUG] Weatherinfo Raw Weather for {src}. Code Received: {code}")
+		print("[DEBUG] Weatherinfo Raw Weather for %s. Code Received: %s" % (src, code))
 		self.error = None
 		src = src.lower()
 		if code is None:
@@ -452,7 +453,7 @@ class Weatherinfo:
 		if link:
 			try:
 				response = urlopen(link, timeout=6)
-				json_data = json.loads(response.read())  # Anpassung dieser Zeile
+				json_data = loads(response.read())  # Anpassung dieser Zeile
 			except Exception as err:
 				self.error = "[%s] ERROR in module 'apiserver': '%s" % (MODULE_NAME, str(err))
 				return
@@ -536,7 +537,7 @@ class Weatherinfo:
 		if self.info and self.error is None:
 			return self.getreducedinfo() if self.reduced else self.info
 
-# --------------------------------------- OWM mit api ---------------------------------------------------
+	# --------------------------------------- OWM mit api ---------------------------------------------------
 	def owmparser(self):
 		print("owmparser ")
 		self.error = None
@@ -969,7 +970,7 @@ class Weatherinfo:
 				else:
 					print("getreducedinfo omw13")
 					self.error = "[%s] ERROR in module 'getreducedinfo#omw': missing geodata." % MODULE_NAME
-# ************************************************ OWM mit Api Key*************************************************************************
+			# ************************************************ OWM mit Api Key*************************************************************************
 			elif self.parser is not None and self.mode == "owm":
 				print("getreducedinfo owm api")
 				if self.geodata:
