@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OAWeather.  If not, see <https://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
+import sys
 from datetime import datetime, timedelta
 from math import pi, floor, cos
 from Components.config import config
@@ -21,12 +23,12 @@ from Plugins.Extensions.OAWeather.plugin import weatherhandler
 import gettext
 _ = gettext.gettext
 
+PY3 = sys.version_info[0] >= 3
 
 CITY_AREA_FORMAT = "%s, %s"
 
 
 class OAWeather(Source):
-
 	YAHOOnightswitch = {
 		"3": "47", "4": "47", "11": "45", "12": "45", "13": "46", "14": "46", "15": "46", "16": "46", "28": "27",
 		"30": "29", "32": "31", "34": "33", "37": "47", "38": "47", "40": "45", "41": "46", "42": "46", "43": "46"
@@ -58,7 +60,7 @@ class OAWeather(Source):
 		self.pluginpath = None
 		self.iconpath = None
 
-	def debug(self, text: str):
+	def debug(self, text):
 		if self.enabledebug:
 			print("[OAWeather] Source DEBUG %s" % text)
 
@@ -76,10 +78,10 @@ class OAWeather(Source):
 	def getValid(self):
 		return self.valid
 
-	def getVal(self, key: str):
+	def getVal(self, key):
 		return self.data.get(key, self.na) if self.data else self.na
 
-	def getCurrentVal(self, key: str, default: str = _("n/a")):
+	def getCurrentVal(self, key, default=_("n/a")):
 		self.debug("getCurrentVal:%s" % key)
 		val = self.data.get("current", {}).get(key, default)
 		self.debug("current key val: %s" % val)
@@ -91,7 +93,7 @@ class OAWeather(Source):
 	def getCity(self):
 		return self.getVal("name")
 
-	def getCityArea(self, default: str = _("n/a")):
+	def getCityArea(self, default=_("n/a")):
 		components = self.getCurrentVal("observationPoint").split(", ")
 		len_components = len(components)
 		if len_components > 1:
@@ -101,7 +103,7 @@ class OAWeather(Source):
 		else:
 			return default
 
-	def getCityCountry(self, default: str = _("n/a")):
+	def getCityCountry(self, default=_("n/a")):
 		components = self.getCurrentVal("observationPoint").split(", ")
 		len_components = len(components)
 		if len_components > 1:
@@ -111,7 +113,7 @@ class OAWeather(Source):
 		else:
 			return default
 
-	def CityCountryArea(self, default: str = _("n/a")):
+	def CityCountryArea(self, default=_("n/a")):
 		components = self.getCurrentVal("observationPoint").split(", ")
 		len_components = len(components)
 		if len_components > 2:
@@ -126,61 +128,69 @@ class OAWeather(Source):
 	def getCityAreaCountry(self):
 		return self.getCurrentVal("observationPoint")
 
+	def _parse_datetime(self, val):
+		"""Compatible datetime parser for both Python 2.7 and 3.x"""
+		if not val:
+			return None
+
+		# Ensure unicode in Python 2
+		if not PY3 and isinstance(val, str):
+			try:
+				val = val.decode("utf-8")
+			except:
+				pass
+
+		# Python 3: try fromisoformat if available
+		if PY3 and hasattr(datetime, 'fromisoformat'):
+			try:
+				return datetime.fromisoformat(val)
+			except Exception:
+				pass
+
+		# Fallback valid for Python 2 and Python 3
+		formats = [
+			"%Y-%m-%d %H:%M:%S",
+			"%Y-%m-%dT%H:%M:%S",
+			"%Y-%m-%d"
+		]
+
+		for fmt in formats:
+			try:
+				return datetime.strptime(val, fmt)
+			except Exception:
+				continue
+
+		return None
+
 	def getObservationTime(self):
 		val = self.getCurrentVal("observationTime", "")
-		if val:
-			try:
-				return datetime.fromisoformat(val).strftime("%H:%M")
-			except (TypeError, ValueError):
-				try:
-					return datetime.strptime(val, "%Y-%m-%d %H:%M:%S").strftime("%H:%M")
-				except:
-					return self.na
-		return self.na
+		dt = self._parse_datetime(val)
+		return dt.strftime("%H:%M") if dt else self.na
 
 	def getSunrise(self):
 		val = self.getCurrentVal("sunrise", "")
-		if val:
-			try:
-				return datetime.fromisoformat(val).strftime("%H:%M")
-			except (TypeError, ValueError):
-				try:
-					return datetime.strptime(val, "%Y-%m-%d %H:%M:%S").strftime("%H:%M")
-				except:
-					return self.na
-		return self.na
+		dt = self._parse_datetime(val)
+		return dt.strftime("%H:%M") if dt else self.na
 
 	def getSunset(self):
 		val = self.getCurrentVal("sunset", "")
-		if val:
-			try:
-				return datetime.fromisoformat(val).strftime("%H:%M")
-			except (TypeError, ValueError):
-				try:
-					return datetime.strptime(val, "%Y-%m-%d %H:%M:%S").strftime("%H:%M")
-				except:
-					return self.na
-		return self.na
+		dt = self._parse_datetime(val)
+		return dt.strftime("%H:%M") if dt else self.na
 
 	def getMoonrise(self):
 		val = self.getCurrentVal("moonrise", "")
-		return datetime.fromisoformat(val).strftime("%H:%M") if val else self.na
+		dt = self._parse_datetime(val)
+		return dt.strftime("%H:%M") if dt else self.na
 
 	def getMoonset(self):
 		val = self.getCurrentVal("moonset", "")
-		return datetime.fromisoformat(val).strftime("%H:%M") if val else self.na
+		dt = self._parse_datetime(val)
+		return dt.strftime("%H:%M") if dt else self.na
 
-	def getDate(self, day: int):
+	def getDate(self, day):
 		val = self.getKeyforDay("date", day, "")
-		if val:
-			try:
-				return datetime.fromisoformat(val).strftime("%d. %b")
-			except (TypeError, ValueError):
-				try:
-					return datetime.strptime(val, "%Y-%m-%d").strftime("%d. %b")
-				except:
-					return self.na
-		return self.na
+		dt = self._parse_datetime(val)
+		return dt.strftime("%d. %b") if dt else self.na
 
 	def getIsNight(self):
 		return str(self.getCurrentVal("isNight", "False")) == "True"
@@ -248,44 +258,44 @@ class OAWeather(Source):
 	def getPressure(self):
 		return "%s %s" % (self.getCurrentVal("pressure", self.na), self.pressunit)
 
-	def getAveragePressure(self, day: int):
+	def getAveragePressure(self, day):
 		return "%s %s" % (self.getKeyforDay("pressure", day), self.pressunit)
 
-	def getMaxTemp(self, day: int):
+	def getMaxTemp(self, day):
 		return "%s %s" % (self.getKeyforDay("maxTemp", day), self.tempunit)
 
-	def getMinTemp(self, day: int):
+	def getMinTemp(self, day):
 		return "%s %s" % (self.getKeyforDay("minTemp", day), self.tempunit)
 
-	def getMaxMinTemp(self, day: int):
+	def getMaxMinTemp(self, day):
 		return "%s / %s %s" % (self.getKeyforDay("minTemp", day), self.getKeyforDay("maxTemp", day), self.tempunit)
 
-	def getMaxFeelsLike(self, day: int):
+	def getMaxFeelsLike(self, day):
 		return "%s %s" % (self.getKeyforDay("maxFeelsLike", day), self.tempunit)
 
-	def getMinFeelsLike(self, day: int):
+	def getMinFeelsLike(self, day):
 		return "%s %s" % (self.getKeyforDay("minFeelsLike", day), self.tempunit)
 
-	def getMaxWindSpeed(self, day: int):
+	def getMaxWindSpeed(self, day):
 		maxwindspeed, windunit = self.getKeyforDay("maxWindSpeed", day), self.windunit
 		if windunit == "km/h" and config.plugins.OAWeather.windspeedMetricUnit.value == "m/s":
 			maxwindspeed, windunit = str(round(int(maxwindspeed) / 3.6, 1)), "m/s"
 		return "%s %s" % (maxwindspeed, windunit)
 
-	def getMinWindSpeed(self, day: int):
+	def getMinWindSpeed(self, day):
 		minwindspeed, windunit = self.getKeyforDay("maxWindSpeed", day), self.windunit
 		if windunit == "km/h" and config.plugins.OAWeather.windspeedMetricUnit.value == "m/s":
 			minwindspeed, windunit = str(round(int(minwindspeed) / 3.6, 1)), "m/s"
 		return "%s %s" % (minwindspeed, windunit)
 
-	def getDomWindDir(self, day: int):
+	def getDomWindDir(self, day):
 		return "%s %s" % (self.getKeyforDay("domWindDir", day), self.tempunit)
 
-	def getDomWindDirSign(self, day: int):
+	def getDomWindDirSign(self, day):
 		val = self.getCurrentVal("domWindDirSign")
 		return ("%s °" % val) if val else self.na
 
-	def getDomWindDirName(self, day: int):
+	def getDomWindDirName(self, day):
 		skydirection = self.getKeyforDay("domWindDirSign", day)
 		if skydirection:
 			skydirection = skydirection.split(" ")
@@ -293,29 +303,29 @@ class OAWeather(Source):
 		else:
 			return self.na
 
-	def getDomWindDirArrow(self, day: int):
+	def getDomWindDirArrow(self, day):
 		return self.getKeyforDay("domWindDirSign", day).split(" ")[0]
 
-	def getDomWindDirShort(self, day: int):
+	def getDomWindDirShort(self, day):
 		return self.getKeyforDay("windDirSign", day).split(" ")[1]
 
-	def getMaxWindGusts(self, day: int):
+	def getMaxWindGusts(self, day):
 		maxWindGusts, windunit = self.getKeyforDay("maxWindGusts", day), self.windunit
 		if windunit == "km/h" and config.plugins.OAWeather.windspeedMetricUnit.value == "m/s":
 			maxWindGusts, windunit = str(round(int(maxWindGusts) / 3.6, 1)), "m/s"
 		return "%s %s" % (maxWindGusts, windunit)
 
-	def getMaxUvIndex(self, day: int):
+	def getMaxUvIndex(self, day):
 		return "%s" % self.getKeyforDay("maxUvIndex", day, "")
 
-	def getMaxVisibility(self, day: int):
+	def getMaxVisibility(self, day):
 		return "%s %s" % (self.getKeyforDay("maxVisibility", day), self.visibilityunit)
 
-	def getPrecipitation(self, day: int, full=False):
+	def getPrecipitation(self, day, full=False):
 		text = "%s " % self.precipitationtext if full else ""
 		return "%s%s %s" % (text, self.getKeyforDay("precipitation", day), self.getVal("precunit"))
 
-	def getYahooCode(self, day: int):
+	def getYahooCode(self, day):
 		iconcode = self.getKeyforDay("yahooCode", day, "")
 		if day == 0 and hasattr(config.plugins, 'OAWeather') and config.plugins.OAWeather.nighticons.value and self.getIsNight() and iconcode in self.YAHOOnightswitch:
 			iconcode = self.YAHOOnightswitch[iconcode]
@@ -323,7 +333,7 @@ class OAWeather(Source):
 			self.YAHOOdayswitch.get(iconcode, iconcode)
 		return iconcode
 
-	def getMeteoCode(self, day: int):
+	def getMeteoCode(self, day):
 		iconcode = self.getKeyforDay("meteoCode", day, "")
 		if day == 0 and hasattr(config.plugins, 'OAWeather') and config.plugins.OAWeather.nighticons.value and self.getIsNight() and iconcode in self.METEOnightswitch:
 			iconcode = self.METEOnightswitch[iconcode]
@@ -336,7 +346,7 @@ class OAWeather(Source):
 		if config.plugins.OAWeather.trendarrows.value:
 			ta = config.plugins.OAWeather.trendarrows.getText()
 			if moonIllum > 0 and ta and len(ta) > 0:
-				illumArrow = f"{ta[0]} " if self.moonIllumination(self.moonPosition(datetime.today() - timedelta(hours=1))) < moonIllum else f"{ta[1]} "
+				illumArrow = (str(ta[0]) + " ") if self.moonIllumination(self.moonPosition(datetime.today() - timedelta(hours=1))) < moonIllum else (str(ta[1]) + " ")
 			else:
 				illumArrow = "● "
 		else:
@@ -347,7 +357,7 @@ class OAWeather(Source):
 		moonDist = self.moonDistance(datetime.today())
 		if config.plugins.OAWeather.trendarrows.value:
 			ta = config.plugins.OAWeather.trendarrows.getText()
-			distArrow = f"{ta[0]} " if self.moonDistance(datetime.today() - timedelta(hours=1)) < moonDist else f"{ta[1]} "
+			distArrow = (str(ta[0]) + " ") if self.moonDistance(datetime.today() - timedelta(hours=1)) < moonDist else (str(ta[1]) + " ")
 		else:
 			distArrow = ""
 		return "%s%s %s" % (distArrow, round(moonDist), "km")
@@ -385,7 +395,7 @@ class OAWeather(Source):
 		DD = (297.85020420 + 12.190749117502 * t) * pi / 90
 		return 385000.5584 - 20905.3550 * cos(GM) - 3699.1109 * cos(DD - GM) - 2955.9676 * cos(DD) - 569.9251 * cos(2 * GM)
 
-	def getKeyforDay(self, key: str, day: int, default: str = _("n/a")):
+	def getKeyforDay(self, key, day, default=_("n/a")):
 		self.debug("getKeyforDay key:%s day:%s default:%s" % (key, day, default))
 		if day == 0:
 			return self.data.get("current", {}).get(key, default) if self.data else default

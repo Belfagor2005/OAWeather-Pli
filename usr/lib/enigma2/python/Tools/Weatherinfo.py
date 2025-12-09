@@ -13,6 +13,7 @@
 #                                                                                                       #
 #########################################################################################################
 
+from __future__ import print_function
 import re
 import sys
 import threading
@@ -91,8 +92,8 @@ class Weatherinfo:
 			"n410": ("9", "Q"), "n411": ("5", "W"), "n412": ("14", "V"), "n420": ("9", "Q"),
 			"n421": ("5", "W"), "n422": ("14", "W"), "n430": ("12", "Q"), "n431": ("5", "W"),
 			"n432": ("15", "W"), "n440": ("4", "0"), "n500": ("29", "I"), "n600": ("20", "E"),
-			"n603": ("10", "U"), "n605": ("17", "X"), "n705": ("17", "X"), "n905": ("17", "X"),
-			"n907": ("21", "M"), "n900": ("21", "M"),
+			"n603": ("10", "U"), "n605": ("17", "X"), "n705": ("17", "X"), "n900": ("21", "M"),
+			"n905": ("17", "X"), "n907": ("21", "M"),
 
 			# lululla added
 			"d00": ("32", "B"), "d10": ("34", "B"), "d20": ("30", "H"), "d21": ("12", "Q"),
@@ -243,6 +244,30 @@ class Weatherinfo:
 		self.callback = None
 		self.reduced = False
 		self.setmode(newmode, apikey)
+
+	def _parse_datetime(self, val):
+		"""Compatible datetime parser for both Python 2.7 and 3.x"""
+		if not val:
+			return None
+		try:
+			# Try Python 3.7+ fromisoformat first
+			if PY3 and hasattr(datetime, 'fromisoformat'):
+				return datetime.fromisoformat(val)
+		except (AttributeError, ValueError):
+			pass
+
+		# Fallback to strptime for both versions
+		formats = [
+			"%Y-%m-%d %H:%M:%S",
+			"%Y-%m-%dT%H:%M:%S",
+			"%Y-%m-%d"
+		]
+		for fmt in formats:
+			try:
+				return datetime.strptime(val, fmt)
+			except ValueError:
+				continue
+		return None
 
 	def setmode(self, newmode="msn", apikey=None):
 		self.error = None
@@ -1197,7 +1222,8 @@ class Weatherinfo:
 				c.set("meteocode", iconCode.get("meteoCode", ")") if iconCode else ")")
 				c.set("skytext", forecast[0]["hourly"][0]["pvdrCap"] if forecast[0]["hourly"] else current["capAbbr"])
 				print("getmsnxml 1")
-				currdate = datetime.fromisoformat(current["created"])
+				# currdate = datetime.fromisoformat(current["created"])
+				currdate = self._parse_datetime(current["created"])
 				print("getmsnxml 2")
 				c.set("date", currdate.strftime(datefmt))
 				c.set("observationtime", currdate.strftime("%X"))

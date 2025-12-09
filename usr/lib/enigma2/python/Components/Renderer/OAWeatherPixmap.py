@@ -7,14 +7,15 @@
 #
 # dogtag is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with OAWeather.	 If not, see <https://www.gnu.org/licenses/>.
+# along with OAWeather.  If not, see <https://www.gnu.org/licenses/>.
 
 from Components.Renderer.Renderer import Renderer
 from enigma import ePixmap, BT_SCALE, BT_KEEP_ASPECT_RATIO, BT_HALIGN_CENTER, BT_VALIGN_CENTER
+from os.path import join
 
 
 class OAWeatherPixmap(Renderer):
@@ -25,9 +26,8 @@ class OAWeatherPixmap(Renderer):
 	GUI_WIDGET = ePixmap
 
 	def postWidgetCreate(self, instance):
-		import os
 		PLi = '/usr/lib/enigma2/python/Plugins'
-		if not os.path.join(PLi, 'PLi'):
+		if not join(PLi, 'PLi'):
 			instance.setPixmapScaleFlags(BT_SCALE | BT_KEEP_ASPECT_RATIO | BT_HALIGN_CENTER | BT_VALIGN_CENTER)
 		self.changed((self.CHANGED_DEFAULT,))
 
@@ -36,7 +36,7 @@ class OAWeatherPixmap(Renderer):
 			pngname = ""
 			if what[0] != self.CHANGED_CLEAR:
 				pngname = self.source.iconfilename
-			if pngname == "":
+			if not pngname:
 				self.instance.hide()
 			else:
 				self.instance.show()

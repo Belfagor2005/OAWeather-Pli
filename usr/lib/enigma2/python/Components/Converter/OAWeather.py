@@ -15,6 +15,7 @@
 
 # Some parts are taken from msnweathercomponent plugin for compatibility reasons.
 
+from __future__ import print_function
 from os.path import join, exists, isfile
 from traceback import print_exc
 
@@ -39,7 +40,7 @@ class OAWeather(Converter, object):
 		"day5": DAY5
 	}
 
-	def __init__(self, type: str):
+	def __init__(self, type):
 		self.enabledebug = config.plugins.OAWeather.debug.value
 		Converter.__init__(self, type)
 		self.debug("__init__ type:%s" % type)
@@ -60,7 +61,7 @@ class OAWeather(Converter, object):
 		if config.plugins.OAWeather.debug.value:
 			self.getText = self.getTextDebug
 
-	def getIndex(self, key: str):
+	def getIndex(self, key):
 		self.debug("getIndex key:%s" % (key))
 		return self.DAYS.get(key, None)
 
@@ -251,6 +252,6 @@ class OAWeather(Converter, object):
 
 	iconfilename = property(getIconFilename)
 
-	def debug(self, text: str):
+	def debug(self, text):
 		if self.enabledebug:
 			print("[OAWeather] Converter DEBUG %s" % text)
