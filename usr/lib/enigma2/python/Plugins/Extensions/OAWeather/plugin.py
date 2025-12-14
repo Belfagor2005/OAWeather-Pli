@@ -1188,10 +1188,10 @@ class OAWeatherPlugin(Screen):
 		for idx in range(1, 6):
 			self["weekday%s_temp" % idx].text = ""
 
-	def getVal(self, key: str):
+	def getVal(self, key):
 		return self.data.get(key, self.na) if self.data else self.na
 
-	def getCurrentVal(self, key: str, default: str = _("n/a")):
+	def getCurrentVal(self, key, default=_("n/a")):
 		value = default
 		if self.data and "current" in self.data:
 			current = self.data.get("current", {})

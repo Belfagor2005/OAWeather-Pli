@@ -5,7 +5,7 @@ from Tools.Directories import resolveFilename, SCOPE_PLUGINS
 import gettext
 import os
 
-__version__ = "4.1"
+__version__ = "4.2"
 
 PluginLanguageDomain = 'OAWeather'
 PluginLanguagePath = 'Extensions/OAWeather/locale'
