@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-15 16:34+0100\n"
+"POT-Creation-Date: 2025-11-10 18:30+0100\n"
 "PO-Revision-Date: 2022-11-14 11:47+0000\n"
 "Last-Translator: Juanjo-EA1CJ <juanjo.ea1cj@gmail.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/openatv/metrixhd/es/>\n"
@@ -18,13 +18,29 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.15-dev\n"
 
+#: plugin.py:104
 #, python-format
 msgid "%d Minutes"
 msgstr "%d Minutos"
 
+#: plugin.py:1761
+msgid "Add"
+msgstr ""
+
+#: plugin.py:485
+msgid "Add Fav"
+msgstr ""
+
 msgid "Cache data"
 msgstr "Datos en cache"
 
+#: plugin.py:523 plugin.py:713
+#, fuzzy
+#| msgid "Cache data"
+msgid "Cache data :"
+msgstr "Datos en cache"
+
+#: plugin.py:113
 msgid "Celsius"
 msgstr "Celsius"
 
@@ -34,90 +50,301 @@ msgstr ""
 msgid "Choose whether the 'night switch' should be activated or not. Some icons are then displayed as night icons with moon."
 msgstr ""
 
-#, python-format
-msgid "City '%s' not found! Please try another wording."
-msgstr "Ciudad '%s' no encontrada! Por favor prueba con otra palabta."
+#: plugin.py:1027 plugin.py:1235
+msgid "Chose favorite"
+msgstr ""
 
+#: plugin.py:553
+msgid "City name must be at least 3 characters"
+msgstr ""
+
+#: plugin.py:1884
+msgid "Coordinates not available for this location"
+msgstr ""
+
+#: plugin.py:1024
 #, fuzzy
 msgid "Current Weather"
 msgstr "Error en Weatherinfo"
 
+#: plugin.py:1238
+msgid "Day +/-"
+msgstr ""
+
+#: plugin.py:90
 #, fuzzy
 msgid "Default"
 msgstr "Valores predefinidos"
 
+#: plugin.py:486
 msgid "Defaults"
 msgstr "Valores predefinidos"
 
+#: plugin.py:1758
+msgid "Delete"
+msgstr ""
+
+#: plugin.py:2067
+msgid "Delete failed"
+msgstr ""
+
+#: plugin.py:2027
+#, python-brace-format
+msgid "Delete {}?"
+msgstr ""
+
+msgid "Detail level in detail view"
+msgstr ""
+
+#: plugin.py:1239
+msgid "Details +/-"
+msgstr ""
+
+#: plugin.py:104
 msgid "Disabled"
 msgstr "Deshabilitado"
 
+#: plugin.py:773
 msgid "East"
 msgstr "Este"
+
+#: plugin.py:1760
+msgid "Edit"
+msgstr ""
+
+#: plugin.py:2096
+#, fuzzy
+#| msgid "Weather city name"
+msgid "Edit city name"
+msgstr "Nombre de la ciudad en MetrixWeather"
 
 #, fuzzy
 msgid "Enable Debug"
 msgstr "Habilitado"
 
+#: plugin.py:524 plugin.py:714
+#, fuzzy
+msgid "Enable Debug :"
+msgstr "Habilitado"
+
 msgid "Enabled"
 msgstr "Habilitado"
 
-msgid "Enter a personalized API key for use with OpenWeatherMap (https://openweathermap.org/)."
+#: plugin.py:513 plugin.py:704
+#, fuzzy
+#| msgid "Enabled"
+msgid "Enabled :"
+msgstr "Habilitado"
+
+#, fuzzy
+#| msgid "Enter a personalized API key for use with OpenWeatherMap (https://openweathermap.org/)."
+msgid "Enter a personalized API key v2.5 for use with OpenWeatherMap (https://openweathermap.org/)."
 msgstr "Introduzca una clave API personalizada para su uso con OpenWeatherMap (https://openweathermap.org/)."
 
-msgid "Enter the location for your weather forecasts."
-msgstr "Introduzca la ubicación para sus previsiones meteorológicas."
+#: plugin.py:1820
+msgid "Enter city name (e.g. 'Rome, IT')"
+msgstr ""
 
-msgid "Error getting City ID"
-msgstr "Error al obtener el ID de la ciudad"
+msgid "Enter the location for your weather forecasts. To include your location, expand your favorites list with 'Manage your favorites'."
+msgstr ""
 
-msgid "Error in Weatherinfo"
+#: plugin.py:1937
+#, fuzzy
+#| msgid "Error in Weatherinfo"
+msgid "Error adding location"
 msgstr "Error en Weatherinfo"
 
+#: plugin.py:1686 plugin.py:1709
+#, fuzzy
+#| msgid "Error getting City ID"
+msgid "Error changing day"
+msgstr "Error al obtener el ID de la ciudad"
+
+#: plugin.py:628 plugin.py:1903
+msgid "Error processing location data"
+msgstr ""
+
+#: plugin.py:2086
+msgid "Error saving favorites"
+msgstr ""
+
+#: plugin.py:746
+#, fuzzy
+#| msgid "Error in Weatherinfo"
+msgid "Error saving location"
+msgstr "Error en Weatherinfo"
+
+#: plugin.py:1999
+msgid "Error selecting location"
+msgstr ""
+
+#: plugin.py:1806
+#, fuzzy
+#| msgid "Error getting City ID"
+msgid "Error updating list"
+msgstr "Error al obtener el ID de la ciudad"
+
+#: plugin.py:1026 plugin.py:1234
+msgid "Exit"
+msgstr ""
+
+#: plugin.py:113
 msgid "Fahrenheit"
 msgstr "Fahrenheit"
 
+#: plugin.py:2080
+msgid "Favorites saved successfully"
+msgstr ""
+
+#: plugin.py:945
 msgid "Feels like"
 msgstr ""
 
+#: plugin.py:1022
+msgid "GREEN: MANAGEMENT FAVORITES | MENU: SETUP | INFO: DETAILS | HOME"
+msgstr ""
+
+#: plugin.py:1240
+msgid "Glass"
+msgstr ""
+
+#: plugin.py:944
 msgid "Humidity"
 msgstr ""
 
-msgid "Location Selection"
+#: plugin.py:1934
+msgid "Invalid location coordinates"
+msgstr ""
+
+#: plugin.py:620
+msgid "Invalid location format"
+msgstr ""
+
+#: plugin.py:2109
+#, fuzzy
+#| msgid "Location Selection"
+msgid "Invalid selection"
 msgstr "Selección de la ubicación"
 
+#: plugin.py:112
+msgid "Less details / Larger font"
+msgstr ""
+
+#: plugin.py:1053
+msgid "Loading weather data..."
+msgstr ""
+
+#: plugin.py:1930
+msgid "Location added successfully"
+msgstr ""
+
+#: plugin.py:732
+msgid "Location added to favorites"
+msgstr ""
+
+#: plugin.py:1920
+msgid "Location already exists"
+msgstr ""
+
+#: plugin.py:596 plugin.py:738
+msgid "Location already in favorites"
+msgstr ""
+
+#: plugin.py:2063
+#, fuzzy
+#| msgid "Location Selection"
+msgid "Location deleted"
+msgstr "Selección de la ubicación"
+
+#: plugin.py:1923
+msgid "Location with similar coordinates already exists"
+msgstr ""
+
+#: plugin.py:116
 msgid "MSN weather"
 msgstr "El tiempo en MSN"
+
+#: plugin.py:1757
+msgid "Manage Favorites"
+msgstr ""
+
+#: plugin.py:1020
+msgid "Menu"
+msgstr ""
 
 msgid "Metric unit for wind speed"
 msgstr ""
 
+#: plugin.py:112
+msgid "More Details / Smaller font"
+msgstr ""
+
+#: plugin.py:1174 plugin.py:1177
+msgid "N/A"
+msgstr ""
+
+#: plugin.py:1029 plugin.py:1237
+msgid "Next favorite"
+msgstr ""
+
+#: plugin.py:1315
+msgid "No data"
+msgstr ""
+
+#: plugin.py:178
+msgid "No locations found"
+msgstr ""
+
+#: plugin.py:773
 msgid "North"
 msgstr "Norte"
 
+#: plugin.py:773
 msgid "Northeast"
 msgstr "Noreste"
 
+#: plugin.py:773
 msgid "Northwest"
 msgstr "Noroeste"
 
+#: plugin.py:116
 msgid "Open-Meteo Wetter"
 msgstr "Humedad Open-Meteo"
 
+#: plugin.py:116
 msgid "OpenWeatherMap"
 msgstr "OpenWeatherMap"
 
+#: plugin.py:533 plugin.py:540
+#, fuzzy
+#| msgid "Weather city name"
+msgid "Please enter a valid city name."
+msgstr "Nombre de la ciudad en MetrixWeather"
+
+#: plugin.py:1838
+msgid "Please enter at least 3 characters"
+msgstr ""
+
+#: plugin.py:943
 msgid "Precipitation"
+msgstr ""
+
+#: plugin.py:1028 plugin.py:1236
+msgid "Previous favorite"
 msgstr ""
 
 msgid "Refresh interval"
 msgstr "Intervalo de actualización"
 
-msgid "Search for City ID please wait..."
-msgstr "Buscando el ID de la ciudad por favor espere..."
+#: plugin.py:522 plugin.py:712
+#, fuzzy
+#| msgid "Refresh interval"
+msgid "Refresh interval :"
+msgstr "Intervalo de actualización"
 
-msgid "Search for your City"
-msgstr "Busque su ciudad"
+#: plugin.py:484 plugin.py:1759
+msgid "Save"
+msgstr ""
 
 #, fuzzy
 msgid "Select 'Yes' to enable add debug output to log."
@@ -127,8 +354,18 @@ msgstr "Seleccione \"Sí\" para activar la adición de MetrixWeather a la pantal
 msgid "Select 'Yes' to enable the addition of Weather."
 msgstr "Seleccione \"Sí\" para activar la adición de MetrixWeather a la pantalla de la barra de información."
 
-msgid "Select Your Location"
+#: plugin.py:187 plugin.py:277 plugin.py:487
+#, fuzzy
+#| msgid "Select Your Location"
+msgid "Select location"
 msgstr "Seleccione su ubicación"
+
+#: plugin.py:2166
+msgid "Select the City and Press Ok"
+msgstr ""
+
+msgid "Select the detail level in the detail view. You have the choice between a comprehensive presentation in a smaller font and a reduced presentation with a larger font."
+msgstr ""
 
 msgid "Select the metric unit for wind speed to be used for wind displays. This has no effect on the imperial unit 'mph'."
 msgstr ""
@@ -142,18 +379,33 @@ msgstr "Seleccione la unidad de temperatura que se utilizará para la visualizac
 msgid "Select this option to save that last obtained weather data locally. This is used to initialize the data immediately after restart while updated data is being fetched."
 msgstr "Seleccione esta opción para guardar localmente los últimos datos meteorológicos obtenidos. Esto se utiliza para inicializar los datos inmediatamente después de reiniciar mientras se obtienen los datos actualizados."
 
-msgid "Set default values"
-msgstr "Establecer los valores por defecto"
+#: plugin.py:1031
+msgid "Settings"
+msgstr ""
 
+#: plugin.py:473
+msgid "Setup"
+msgstr ""
+
+#: plugin.py:959
 msgid "Show Weather Forecast"
 msgstr ""
 
+msgid "Show trend arrows for moon data"
+msgstr ""
+
+msgid "Show trend arrows for moon illumination and moon distance to see the current trend of the data."
+msgstr ""
+
+#: plugin.py:773
 msgid "South"
 msgstr "Sur"
 
+#: plugin.py:773
 msgid "Southeast"
 msgstr "Sureste"
 
+#: plugin.py:773
 msgid "Southwest"
 msgstr "Suroeste"
 
@@ -161,62 +413,156 @@ msgstr "Suroeste"
 msgid "Specify how often Weather retrieves its data from the server. 'Once' means the data will loaded only once after a GUI or system start."
 msgstr "Especifique la frecuencia con la que MetrixWeather recupera sus datos del servidor. Una vez\" significa que los datos se cargarán sólo una vez después de un inicio de la GUI o del sistema."
 
+#: plugin.py:716
+msgid "Standard fertig"
+msgstr ""
+
 msgid "Temperature unit"
 msgstr "Unidad de temperatura"
 
-msgid ""
-"The API key for OpenWeatherMap is not defined or invalid.\n"
-"Please verify your input data.\n"
-"Otherwise your settings won't be saved."
-msgstr ""
-"La clave API para OpenWeatherMap no está definida o no es válida.\n"
-"Por favor, verifique sus datos de entrada.\n"
-"De lo contrario, su configuración no se guardará."
+#: plugin.py:518 plugin.py:709
+#, fuzzy
+#| msgid "Temperature unit"
+msgid "Temperature unit :"
+msgstr "Unidad de temperatura"
 
-msgid "The city name is too short. More than 2 characters are needed for search."
-msgstr "El nombre de la ciudad es demasiado corto. Se necesitan más de 2 caracteres para la búsqueda."
-
+#: plugin.py:1025 plugin.py:1296
 msgid "Today"
 msgstr ""
 
+#: plugin.py:1318
+msgid "Try refreshing or check settings"
+msgstr ""
+
+#: plugin.py:1023 plugin.py:1225
 msgid "Update"
 msgstr ""
 
-msgid "Weather API key"
+#: plugin.py:1030
+msgid "View details"
+msgstr ""
+
+#: plugin.py:517 plugin.py:536 plugin.py:708
+#, fuzzy
+#| msgid "Weather API key"
+msgid "Weather API key :"
 msgstr "Clave API de MetrixWeather"
 
+#, fuzzy
+#| msgid "Weather API key"
+msgid "Weather API key v2.5"
+msgstr "Clave API de MetrixWeather"
+
+#: plugin.py:959 plugin.py:1019
 #, fuzzy
 msgid "Weather Plugin"
 msgstr "Ajustes meteorológicos"
 
-msgid "Weather Settings Actions"
-msgstr "Acciones de la configuración meteorológica"
+#: plugin.py:1222
+#, fuzzy
+msgid "Weather Plugin Detailview"
+msgstr "Ajustes meteorológicos"
 
 msgid "Weather city name"
+msgstr "Nombre de la ciudad en MetrixWeather"
+
+#: plugin.py:516 plugin.py:532 plugin.py:707
+#, fuzzy
+#| msgid "Weather city name"
+msgid "Weather city name :"
+msgstr "Nombre de la ciudad en MetrixWeather"
+
+#: plugin.py:1068 plugin.py:1317 plugin.py:1395 plugin.py:1671 plugin.py:1694
+#, fuzzy
+#| msgid "Weather city name"
+msgid "Weather data unavailable"
 msgstr "Nombre de la ciudad en MetrixWeather"
 
 #, fuzzy
 msgid "Weather icon night switch"
 msgstr "Ruta del icono de MetrixWeather"
 
+#: plugin.py:521 plugin.py:711
+#, fuzzy
+msgid "Weather icon night switch :"
+msgstr "Ruta del icono de MetrixWeather"
+
 #, fuzzy
 msgid "Weather icon set"
+msgstr "Ruta del icono de MetrixWeather"
+
+#: plugin.py:520 plugin.py:710
+#, fuzzy
+msgid "Weather icon set :"
 msgstr "Ruta del icono de MetrixWeather"
 
 msgid "Weather service"
 msgstr "Servicio MetrixWeather"
 
+#: plugin.py:515 plugin.py:706
+#, fuzzy
+#| msgid "Weather service"
+msgid "Weather service :"
+msgstr "Servicio MetrixWeather"
+
 msgid "Weather settings"
 msgstr "Ajustes meteorológicos"
 
+#: plugin.py:773
 msgid "West"
 msgstr "Oeste"
 
+#: plugin.py:519
+msgid "Wind speed metric unit:"
+msgstr ""
+
+#: plugin.py:2006
+msgid "You have unsaved changes. Save before exiting?"
+msgstr ""
+
+#: plugin.py:2165
+msgid "exit"
+msgstr ""
+
+#: plugin.py:114
 msgid "km/h"
 msgstr ""
 
+#: plugin.py:114
 msgid "m/s"
 msgstr ""
 
+#: plugin.py:1018 plugin.py:1078 plugin.py:1216
 msgid "n/a"
 msgstr ""
+
+#, python-format
+#~ msgid "City '%s' not found! Please try another wording."
+#~ msgstr "Ciudad '%s' no encontrada! Por favor prueba con otra palabta."
+
+#~ msgid "Enter the location for your weather forecasts."
+#~ msgstr "Introduzca la ubicación para sus previsiones meteorológicas."
+
+#~ msgid "Search for City ID please wait..."
+#~ msgstr "Buscando el ID de la ciudad por favor espere..."
+
+#~ msgid "Search for your City"
+#~ msgstr "Busque su ciudad"
+
+#~ msgid "Set default values"
+#~ msgstr "Establecer los valores por defecto"
+
+#~ msgid ""
+#~ "The API key for OpenWeatherMap is not defined or invalid.\n"
+#~ "Please verify your input data.\n"
+#~ "Otherwise your settings won't be saved."
+#~ msgstr ""
+#~ "La clave API para OpenWeatherMap no está definida o no es válida.\n"
+#~ "Por favor, verifique sus datos de entrada.\n"
+#~ "De lo contrario, su configuración no se guardará."
+
+#~ msgid "The city name is too short. More than 2 characters are needed for search."
+#~ msgstr "El nombre de la ciudad es demasiado corto. Se necesitan más de 2 caracteres para la búsqueda."
+
+#~ msgid "Weather Settings Actions"
+#~ msgstr "Acciones de la configuración meteorológica"

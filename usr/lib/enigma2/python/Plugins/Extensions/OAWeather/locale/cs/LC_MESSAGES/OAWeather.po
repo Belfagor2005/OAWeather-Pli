@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OAWeather\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-15 16:34+0100\n"
+"POT-Creation-Date: 2025-11-10 18:30+0100\n"
 "PO-Revision-Date: 2022-12-10 09:48+0000\n"
 "Last-Translator: Petr Turek <turekdesign99@gmail.com>\n"
 "Language-Team: Czech <https://hosted.weblate.org/projects/openatv/metrixhd/cs/>\n"
@@ -14,13 +14,29 @@ msgstr ""
 "X-Generator: Weblate 4.15-dev\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
+#: plugin.py:104
 #, python-format
 msgid "%d Minutes"
 msgstr "%d minut"
 
+#: plugin.py:1761
+msgid "Add"
+msgstr ""
+
+#: plugin.py:485
+msgid "Add Fav"
+msgstr ""
+
 msgid "Cache data"
 msgstr "Data mezipaměti (Cache)"
 
+#: plugin.py:523 plugin.py:713
+#, fuzzy
+#| msgid "Cache data"
+msgid "Cache data :"
+msgstr "Data mezipaměti (Cache)"
+
+#: plugin.py:113
 msgid "Celsius"
 msgstr "Stupně Celsia"
 
@@ -30,90 +46,301 @@ msgstr ""
 msgid "Choose whether the 'night switch' should be activated or not. Some icons are then displayed as night icons with moon."
 msgstr ""
 
-#, python-format
-msgid "City '%s' not found! Please try another wording."
-msgstr "Město '%s' nebylo nalezeno! Zkuste prosím jiné znění."
+#: plugin.py:1027 plugin.py:1235
+msgid "Chose favorite"
+msgstr ""
 
+#: plugin.py:553
+msgid "City name must be at least 3 characters"
+msgstr ""
+
+#: plugin.py:1884
+msgid "Coordinates not available for this location"
+msgstr ""
+
+#: plugin.py:1024
 #, fuzzy
 msgid "Current Weather"
 msgstr "Chyba v aplikaci Weatherinfo"
 
+#: plugin.py:1238
+msgid "Day +/-"
+msgstr ""
+
+#: plugin.py:90
 #, fuzzy
 msgid "Default"
 msgstr "Výchozí"
 
+#: plugin.py:486
 msgid "Defaults"
 msgstr "Výchozí"
 
+#: plugin.py:1758
+msgid "Delete"
+msgstr ""
+
+#: plugin.py:2067
+msgid "Delete failed"
+msgstr ""
+
+#: plugin.py:2027
+#, python-brace-format
+msgid "Delete {}?"
+msgstr ""
+
+msgid "Detail level in detail view"
+msgstr ""
+
+#: plugin.py:1239
+msgid "Details +/-"
+msgstr ""
+
+#: plugin.py:104
 msgid "Disabled"
 msgstr "Bezbariérový"
 
+#: plugin.py:773
 msgid "East"
 msgstr "Východ"
+
+#: plugin.py:1760
+msgid "Edit"
+msgstr ""
+
+#: plugin.py:2096
+#, fuzzy
+#| msgid "Weather city name"
+msgid "Edit city name"
+msgstr "Název města MetrixWeather"
 
 #, fuzzy
 msgid "Enable Debug"
 msgstr "Info o počasí"
 
+#: plugin.py:524 plugin.py:714
+#, fuzzy
+msgid "Enable Debug :"
+msgstr "Info o počasí"
+
 msgid "Enabled"
 msgstr "Info o počasí"
 
-msgid "Enter a personalized API key for use with OpenWeatherMap (https://openweathermap.org/)."
+#: plugin.py:513 plugin.py:704
+#, fuzzy
+#| msgid "Enabled"
+msgid "Enabled :"
+msgstr "Info o počasí"
+
+#, fuzzy
+#| msgid "Enter a personalized API key for use with OpenWeatherMap (https://openweathermap.org/)."
+msgid "Enter a personalized API key v2.5 for use with OpenWeatherMap (https://openweathermap.org/)."
 msgstr "Zadejte osobní klíč API pro použití s OpenWeatherMap (https://openweathermap.org/)."
 
-msgid "Enter the location for your weather forecasts."
-msgstr "Zadejte místo pro předpověď počasí."
+#: plugin.py:1820
+msgid "Enter city name (e.g. 'Rome, IT')"
+msgstr ""
 
-msgid "Error getting City ID"
-msgstr "Chyba při získávání ID města"
+msgid "Enter the location for your weather forecasts. To include your location, expand your favorites list with 'Manage your favorites'."
+msgstr ""
 
-msgid "Error in Weatherinfo"
+#: plugin.py:1937
+#, fuzzy
+#| msgid "Error in Weatherinfo"
+msgid "Error adding location"
 msgstr "Chyba v aplikaci Weatherinfo"
 
+#: plugin.py:1686 plugin.py:1709
+#, fuzzy
+#| msgid "Error getting City ID"
+msgid "Error changing day"
+msgstr "Chyba při získávání ID města"
+
+#: plugin.py:628 plugin.py:1903
+msgid "Error processing location data"
+msgstr ""
+
+#: plugin.py:2086
+msgid "Error saving favorites"
+msgstr ""
+
+#: plugin.py:746
+#, fuzzy
+#| msgid "Error in Weatherinfo"
+msgid "Error saving location"
+msgstr "Chyba v aplikaci Weatherinfo"
+
+#: plugin.py:1999
+msgid "Error selecting location"
+msgstr ""
+
+#: plugin.py:1806
+#, fuzzy
+#| msgid "Error getting City ID"
+msgid "Error updating list"
+msgstr "Chyba při získávání ID města"
+
+#: plugin.py:1026 plugin.py:1234
+msgid "Exit"
+msgstr ""
+
+#: plugin.py:113
 msgid "Fahrenheit"
 msgstr "Stupně Fahrenheita"
 
+#: plugin.py:2080
+msgid "Favorites saved successfully"
+msgstr ""
+
+#: plugin.py:945
 msgid "Feels like"
 msgstr ""
 
+#: plugin.py:1022
+msgid "GREEN: MANAGEMENT FAVORITES | MENU: SETUP | INFO: DETAILS | HOME"
+msgstr ""
+
+#: plugin.py:1240
+msgid "Glass"
+msgstr ""
+
+#: plugin.py:944
 msgid "Humidity"
 msgstr ""
 
-msgid "Location Selection"
+#: plugin.py:1934
+msgid "Invalid location coordinates"
+msgstr ""
+
+#: plugin.py:620
+msgid "Invalid location format"
+msgstr ""
+
+#: plugin.py:2109
+#, fuzzy
+#| msgid "Location Selection"
+msgid "Invalid selection"
 msgstr "Výběr umístění"
 
+#: plugin.py:112
+msgid "Less details / Larger font"
+msgstr ""
+
+#: plugin.py:1053
+msgid "Loading weather data..."
+msgstr ""
+
+#: plugin.py:1930
+msgid "Location added successfully"
+msgstr ""
+
+#: plugin.py:732
+msgid "Location added to favorites"
+msgstr ""
+
+#: plugin.py:1920
+msgid "Location already exists"
+msgstr ""
+
+#: plugin.py:596 plugin.py:738
+msgid "Location already in favorites"
+msgstr ""
+
+#: plugin.py:2063
+#, fuzzy
+#| msgid "Location Selection"
+msgid "Location deleted"
+msgstr "Výběr umístění"
+
+#: plugin.py:1923
+msgid "Location with similar coordinates already exists"
+msgstr ""
+
+#: plugin.py:116
 msgid "MSN weather"
 msgstr "Počasí MSN"
+
+#: plugin.py:1757
+msgid "Manage Favorites"
+msgstr ""
+
+#: plugin.py:1020
+msgid "Menu"
+msgstr ""
 
 msgid "Metric unit for wind speed"
 msgstr ""
 
+#: plugin.py:112
+msgid "More Details / Smaller font"
+msgstr ""
+
+#: plugin.py:1174 plugin.py:1177
+msgid "N/A"
+msgstr ""
+
+#: plugin.py:1029 plugin.py:1237
+msgid "Next favorite"
+msgstr ""
+
+#: plugin.py:1315
+msgid "No data"
+msgstr ""
+
+#: plugin.py:178
+msgid "No locations found"
+msgstr ""
+
+#: plugin.py:773
 msgid "North"
 msgstr "Sever"
 
+#: plugin.py:773
 msgid "Northeast"
 msgstr "Severovýchod"
 
+#: plugin.py:773
 msgid "Northwest"
 msgstr "Severozápadní"
 
+#: plugin.py:116
 msgid "Open-Meteo Wetter"
 msgstr "Open-Meteo Wetter"
 
+#: plugin.py:116
 msgid "OpenWeatherMap"
 msgstr "OpenWeatherMap"
 
+#: plugin.py:533 plugin.py:540
+#, fuzzy
+#| msgid "Weather city name"
+msgid "Please enter a valid city name."
+msgstr "Název města MetrixWeather"
+
+#: plugin.py:1838
+msgid "Please enter at least 3 characters"
+msgstr ""
+
+#: plugin.py:943
 msgid "Precipitation"
+msgstr ""
+
+#: plugin.py:1028 plugin.py:1236
+msgid "Previous favorite"
 msgstr ""
 
 msgid "Refresh interval"
 msgstr "Interval obnovení"
 
-msgid "Search for City ID please wait..."
-msgstr "Hledání ID města počkejte prosím..."
+#: plugin.py:522 plugin.py:712
+#, fuzzy
+#| msgid "Refresh interval"
+msgid "Refresh interval :"
+msgstr "Interval obnovení"
 
-msgid "Search for your City"
-msgstr "Vyhledejte své město"
+#: plugin.py:484 plugin.py:1759
+msgid "Save"
+msgstr ""
 
 #, fuzzy
 msgid "Select 'Yes' to enable add debug output to log."
@@ -123,8 +350,18 @@ msgstr "Výběrem možnosti \"Ano\" povolíte přidání aplikace MetrixWeather 
 msgid "Select 'Yes' to enable the addition of Weather."
 msgstr "Výběrem možnosti \"Ano\" povolíte přidání aplikace MetrixWeather na obrazovku informačního panelu."
 
-msgid "Select Your Location"
+#: plugin.py:187 plugin.py:277 plugin.py:487
+#, fuzzy
+#| msgid "Select Your Location"
+msgid "Select location"
 msgstr "Vyberte svou polohu"
+
+#: plugin.py:2166
+msgid "Select the City and Press Ok"
+msgstr ""
+
+msgid "Select the detail level in the detail view. You have the choice between a comprehensive presentation in a smaller font and a reduced presentation with a larger font."
+msgstr ""
 
 msgid "Select the metric unit for wind speed to be used for wind displays. This has no effect on the imperial unit 'mph'."
 msgstr ""
@@ -138,18 +375,33 @@ msgstr "Vyberte jednotku teploty, která se má použít pro zobrazení teploty.
 msgid "Select this option to save that last obtained weather data locally. This is used to initialize the data immediately after restart while updated data is being fetched."
 msgstr "Výběrem této možnosti uložíte naposledy získaná data o lokálním počasí. To se používá k inicializaci dat ihned po restartu, zatímco se načítají aktualizovaná data."
 
-msgid "Set default values"
-msgstr "Nastavit výchozí hodnoty"
+#: plugin.py:1031
+msgid "Settings"
+msgstr ""
 
+#: plugin.py:473
+msgid "Setup"
+msgstr ""
+
+#: plugin.py:959
 msgid "Show Weather Forecast"
 msgstr ""
 
+msgid "Show trend arrows for moon data"
+msgstr ""
+
+msgid "Show trend arrows for moon illumination and moon distance to see the current trend of the data."
+msgstr ""
+
+#: plugin.py:773
 msgid "South"
 msgstr "Jih"
 
+#: plugin.py:773
 msgid "Southeast"
 msgstr "Jihovýchod"
 
+#: plugin.py:773
 msgid "Southwest"
 msgstr "Jihozápad"
 
@@ -157,62 +409,156 @@ msgstr "Jihozápad"
 msgid "Specify how often Weather retrieves its data from the server. 'Once' means the data will loaded only once after a GUI or system start."
 msgstr "Určete, jak často MetrixWeather načítá data ze serveru. 'Jednou' znamená, že se data načtou pouze jednou po spuštění grafického uživatelského rozhraní nebo systému."
 
+#: plugin.py:716
+msgid "Standard fertig"
+msgstr ""
+
 msgid "Temperature unit"
 msgstr "Jednotka teploty"
 
-msgid ""
-"The API key for OpenWeatherMap is not defined or invalid.\n"
-"Please verify your input data.\n"
-"Otherwise your settings won't be saved."
-msgstr ""
-"Klíč API pro OpenWeatherMap není definován nebo je neplatný.\n"
-"Ověřte prosím vstupní údaje.\n"
-"Jinak se vaše nastavení neuloží."
+#: plugin.py:518 plugin.py:709
+#, fuzzy
+#| msgid "Temperature unit"
+msgid "Temperature unit :"
+msgstr "Jednotka teploty"
 
-msgid "The city name is too short. More than 2 characters are needed for search."
-msgstr "Název města je příliš krátký. Pro vyhledávání je potřeba více než 2 znaky."
-
+#: plugin.py:1025 plugin.py:1296
 msgid "Today"
 msgstr ""
 
+#: plugin.py:1318
+msgid "Try refreshing or check settings"
+msgstr ""
+
+#: plugin.py:1023 plugin.py:1225
 msgid "Update"
 msgstr ""
 
-msgid "Weather API key"
+#: plugin.py:1030
+msgid "View details"
+msgstr ""
+
+#: plugin.py:517 plugin.py:536 plugin.py:708
+#, fuzzy
+#| msgid "Weather API key"
+msgid "Weather API key :"
 msgstr "API Klíč MetrixWeather"
 
+#, fuzzy
+#| msgid "Weather API key"
+msgid "Weather API key v2.5"
+msgstr "API Klíč MetrixWeather"
+
+#: plugin.py:959 plugin.py:1019
 #, fuzzy
 msgid "Weather Plugin"
 msgstr "Nastavení počasí"
 
-msgid "Weather Settings Actions"
-msgstr "Akce s nastavením počasí"
+#: plugin.py:1222
+#, fuzzy
+msgid "Weather Plugin Detailview"
+msgstr "Nastavení počasí"
 
 msgid "Weather city name"
+msgstr "Název města MetrixWeather"
+
+#: plugin.py:516 plugin.py:532 plugin.py:707
+#, fuzzy
+#| msgid "Weather city name"
+msgid "Weather city name :"
+msgstr "Název města MetrixWeather"
+
+#: plugin.py:1068 plugin.py:1317 plugin.py:1395 plugin.py:1671 plugin.py:1694
+#, fuzzy
+#| msgid "Weather city name"
+msgid "Weather data unavailable"
 msgstr "Název města MetrixWeather"
 
 #, fuzzy
 msgid "Weather icon night switch"
 msgstr "Cesta k ikoně MetrixWeather"
 
+#: plugin.py:521 plugin.py:711
+#, fuzzy
+msgid "Weather icon night switch :"
+msgstr "Cesta k ikoně MetrixWeather"
+
 #, fuzzy
 msgid "Weather icon set"
+msgstr "Cesta k ikoně MetrixWeather"
+
+#: plugin.py:520 plugin.py:710
+#, fuzzy
+msgid "Weather icon set :"
 msgstr "Cesta k ikoně MetrixWeather"
 
 msgid "Weather service"
 msgstr "Služba MetrixWeather"
 
+#: plugin.py:515 plugin.py:706
+#, fuzzy
+#| msgid "Weather service"
+msgid "Weather service :"
+msgstr "Služba MetrixWeather"
+
 msgid "Weather settings"
 msgstr "Nastavení počasí"
 
+#: plugin.py:773
 msgid "West"
 msgstr "Západ"
 
+#: plugin.py:519
+msgid "Wind speed metric unit:"
+msgstr ""
+
+#: plugin.py:2006
+msgid "You have unsaved changes. Save before exiting?"
+msgstr ""
+
+#: plugin.py:2165
+msgid "exit"
+msgstr ""
+
+#: plugin.py:114
 msgid "km/h"
 msgstr ""
 
+#: plugin.py:114
 msgid "m/s"
 msgstr ""
 
+#: plugin.py:1018 plugin.py:1078 plugin.py:1216
 msgid "n/a"
 msgstr ""
+
+#, python-format
+#~ msgid "City '%s' not found! Please try another wording."
+#~ msgstr "Město '%s' nebylo nalezeno! Zkuste prosím jiné znění."
+
+#~ msgid "Enter the location for your weather forecasts."
+#~ msgstr "Zadejte místo pro předpověď počasí."
+
+#~ msgid "Search for City ID please wait..."
+#~ msgstr "Hledání ID města počkejte prosím..."
+
+#~ msgid "Search for your City"
+#~ msgstr "Vyhledejte své město"
+
+#~ msgid "Set default values"
+#~ msgstr "Nastavit výchozí hodnoty"
+
+#~ msgid ""
+#~ "The API key for OpenWeatherMap is not defined or invalid.\n"
+#~ "Please verify your input data.\n"
+#~ "Otherwise your settings won't be saved."
+#~ msgstr ""
+#~ "Klíč API pro OpenWeatherMap není definován nebo je neplatný.\n"
+#~ "Ověřte prosím vstupní údaje.\n"
+#~ "Jinak se vaše nastavení neuloží."
+
+#~ msgid "The city name is too short. More than 2 characters are needed for search."
+#~ msgstr "Název města je příliš krátký. Pro vyhledávání je potřeba více než 2 znaky."
+
+#~ msgid "Weather Settings Actions"
+#~ msgstr "Akce s nastavením počasí"
