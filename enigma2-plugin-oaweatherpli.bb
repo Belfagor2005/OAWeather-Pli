@@ -17,33 +17,6 @@ SRC_URI = "git://github.com/Belfagor2005/OAWeather-Pli.git;protocol=https;branch
 
 S = "${WORKDIR}/git"
 
-do_install() {
-    # Installa i plugin
-    install -d ${D}${libdir}/enigma2/python/Plugins/Extensions/OAWeather
-    cp -r ${S}/usr/lib/enigma2/python/Plugins/Extensions/OAWeather/* \
-          ${D}${libdir}/enigma2/python/Plugins/Extensions/OAWeather/
-    
-    # Installa i componenti Converter
-    install -d ${D}${libdir}/enigma2/python/Components/Converter
-    cp -r ${S}/usr/lib/enigma2/python/Components/Converter/OAWeather.py \
-          ${D}${libdir}/enigma2/python/Components/Converter/
-    
-    # Installa i componenti Renderer
-    install -d ${D}${libdir}/enigma2/python/Components/Renderer
-    cp -r ${S}/usr/lib/enigma2/python/Components/Renderer/* \
-          ${D}${libdir}/enigma2/python/Components/Renderer/
-    
-    # Installa i componenti Sources
-    install -d ${D}${libdir}/enigma2/python/Components/Sources
-    cp -r ${S}/usr/lib/enigma2/python/Components/Sources/* \
-          ${D}${libdir}/enigma2/python/Components/Sources/
-    
-    # Installa i Tools
-    install -d ${D}${libdir}/enigma2/python/Tools
-    cp -r ${S}/usr/lib/enigma2/python/Tools/* \
-          ${D}${libdir}/enigma2/python/Tools/
-}
-
 FILES:${PN} = " \
     ${libdir}/enigma2/python/Plugins/Extensions/OAWeather/* \
     ${libdir}/enigma2/python/Components/Converter/OAWeather.py \
@@ -51,3 +24,25 @@ FILES:${PN} = " \
     ${libdir}/enigma2/python/Components/Sources/* \
     ${libdir}/enigma2/python/Tools/* \
 "
+
+do_install() {
+    install -d ${D}${libdir}/enigma2/python/Plugins/Extensions/OAWeather
+    cp -r ${S}/usr/lib/enigma2/python/Plugins/Extensions/OAWeather/* \
+          ${D}${libdir}/enigma2/python/Plugins/Extensions/OAWeather/
+    
+    install -d ${D}${libdir}/enigma2/python/Components/Converter
+    cp -r ${S}/usr/lib/enigma2/python/Components/Converter/OAWeather.py \
+          ${D}${libdir}/enigma2/python/Components/Converter/
+    
+    install -d ${D}${libdir}/enigma2/python/Components/Renderer
+    cp -r ${S}/usr/lib/enigma2/python/Components/Renderer/* \
+          ${D}${libdir}/enigma2/python/Components/Renderer/
+    
+    install -d ${D}${libdir}/enigma2/python/Components/Sources
+    cp -r ${S}/usr/lib/enigma2/python/Components/Sources/* \
+          ${D}${libdir}/enigma2/python/Components/Sources/
+    
+    install -d ${D}${libdir}/enigma2/python/Tools
+    cp -r ${S}/usr/lib/enigma2/python/Tools/* \
+          ${D}${libdir}/enigma2/python/Tools/
+}
