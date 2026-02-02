@@ -229,6 +229,8 @@ class OAWeather(Source):
 			skydirection = skydirection.split(" ")
 			if len(skydirection) > 1:
 				return self.skydirs.get(skydirection[1], skydirection[1])
+			elif len(skydirection) > 0:
+				return self.skydirs.get(skydirection[0], skydirection[0])
 			else:
 				return "Unknown direction"
 		else:
