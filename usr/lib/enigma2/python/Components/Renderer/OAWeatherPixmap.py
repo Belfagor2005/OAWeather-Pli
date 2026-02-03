@@ -20,27 +20,28 @@ from os.path import join
 
 
 class OAWeatherPixmap(Renderer):
-	def __init__(self):
-		Renderer.__init__(self)
-		self.iconFileName = ""
+    def __init__(self):
+        Renderer.__init__(self)
+        self.iconFileName = ""
 
-	GUI_WIDGET = ePixmap
+    GUI_WIDGET = ePixmap
 
-	def postWidgetCreate(self, instance):
-		PLi = '/usr/lib/enigma2/python/Plugins'
-		if not join(PLi, 'PLi'):
-			instance.setPixmapScaleFlags(BT_SCALE | BT_KEEP_ASPECT_RATIO | BT_HALIGN_CENTER | BT_VALIGN_CENTER)
-		self.changed((self.CHANGED_DEFAULT,))
+    def postWidgetCreate(self, instance):
+        PLi = '/usr/lib/enigma2/python/Plugins'
+        if not join(PLi, 'PLi'):
+            instance.setPixmapScaleFlags(
+                BT_SCALE | BT_KEEP_ASPECT_RATIO | BT_HALIGN_CENTER | BT_VALIGN_CENTER)
+        self.changed((self.CHANGED_DEFAULT,))
 
-	def changed(self, what):
-		if self.instance:
-			pngname = ""
-			if what[0] != self.CHANGED_CLEAR:
-				pngname = self.source.iconfilename
-			if not pngname:
-				self.instance.hide()
-			else:
-				self.instance.show()
-				if self.iconFileName != pngname:
-					self.instance.setPixmapFromFile(pngname)
-					self.iconFileName = pngname
+    def changed(self, what):
+        if self.instance:
+            pngname = ""
+            if what[0] != self.CHANGED_CLEAR:
+                pngname = self.source.iconfilename
+            if not pngname:
+                self.instance.hide()
+            else:
+                self.instance.show()
+                if self.iconFileName != pngname:
+                    self.instance.setPixmapFromFile(pngname)
+                    self.iconFileName = pngname
