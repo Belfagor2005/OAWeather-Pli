@@ -13,11 +13,20 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Weblate 4.15-dev\n"
 
-#, python-format
 msgid "%d Minutes"
 msgstr "%d Хвилин"
 
+msgid "Add"
+msgstr ""
+
+msgid "Add Fav"
+msgstr ""
+
 msgid "Cache data"
+msgstr "Кеш даних"
+
+#, fuzzy
+msgid "Cache data :"
 msgstr "Кеш даних"
 
 msgid "Celsius"
@@ -29,13 +38,21 @@ msgstr ""
 msgid "Choose whether the 'night switch' should be activated or not. Some icons are then displayed as night icons with moon."
 msgstr ""
 
-#, python-format
-msgid "City '%s' not found! Please try another wording."
-msgstr "Місто '%s' не знайдено! Спробуйте інше формулювання."
+msgid "Chose favorite"
+msgstr ""
+
+msgid "City name must be at least 3 characters"
+msgstr ""
+
+msgid "Coordinates not available for this location"
+msgstr ""
 
 #, fuzzy
 msgid "Current Weather"
 msgstr "Помилка в Weatherinfo"
+
+msgid "Day +/-"
+msgstr ""
 
 #, fuzzy
 msgid "Default"
@@ -44,47 +61,165 @@ msgstr "За замовчуванням"
 msgid "Defaults"
 msgstr "За замовчуванням"
 
+msgid "Delete"
+msgstr ""
+
+msgid "Delete failed"
+msgstr ""
+
+msgid "Delete {}?"
+msgstr ""
+
+msgid "Detail level in detail view"
+msgstr ""
+
+msgid "Details +/-"
+msgstr ""
+
 msgid "Disabled"
 msgstr "Вимкнено"
 
 msgid "East"
 msgstr "Схід"
 
+msgid "Edit"
+msgstr ""
+
+#, fuzzy
+msgid "Edit city name"
+msgstr "Назва міста MetrixWeather"
+
 #, fuzzy
 msgid "Enable Debug"
+msgstr "Ввімкнуто"
+
+#, fuzzy
+msgid "Enable Debug :"
 msgstr "Ввімкнуто"
 
 msgid "Enabled"
 msgstr "Ввімкнуто"
 
-msgid "Enter a personalized API key for use with OpenWeatherMap (https://openweathermap.org/)."
+#, fuzzy
+msgid "Enabled :"
+msgstr "Ввімкнуто"
+
+#, fuzzy
+msgid "Enter a personalized API key v2.5 for use with OpenWeatherMap (https://openweathermap.org/)."
 msgstr "Введіть персоналізований ключ API для використання з OpenWeatherMap (https://openweathermap.org/)."
 
-msgid "Enter the location for your weather forecasts."
-msgstr "Введіть місцевість для прогнозу погоди."
+msgid "Enter city name (e.g. 'Rome, IT')"
+msgstr ""
 
-msgid "Error getting City ID"
+msgid "Enter the location for your weather forecasts. To include your location, expand your favorites list with 'Manage your favorites'."
+msgstr ""
+
+#, fuzzy
+msgid "Error adding location"
+msgstr "Помилка в Weatherinfo"
+
+#, fuzzy
+msgid "Error changing day"
 msgstr "Помилка отримання ID міста"
 
-msgid "Error in Weatherinfo"
+msgid "Error processing location data"
+msgstr ""
+
+msgid "Error saving favorites"
+msgstr ""
+
+#, fuzzy
+msgid "Error saving location"
 msgstr "Помилка в Weatherinfo"
+
+msgid "Error selecting location"
+msgstr ""
+
+#, fuzzy
+msgid "Error updating list"
+msgstr "Помилка отримання ID міста"
+
+msgid "Exit"
+msgstr ""
 
 msgid "Fahrenheit"
 msgstr "Фарентгейт"
 
+msgid "Favorites saved successfully"
+msgstr ""
+
 msgid "Feels like"
+msgstr ""
+
+msgid "GREEN: MANAGEMENT FAVORITES | MENU: SETUP | INFO: DETAILS | HOME"
+msgstr ""
+
+msgid "Glass"
 msgstr ""
 
 msgid "Humidity"
 msgstr ""
 
-msgid "Location Selection"
+msgid "Invalid location coordinates"
+msgstr ""
+
+msgid "Invalid location format"
+msgstr ""
+
+#, fuzzy
+msgid "Invalid selection"
 msgstr "Вибір місця розташування"
+
+msgid "Less details / Larger font"
+msgstr ""
+
+msgid "Loading weather data..."
+msgstr ""
+
+msgid "Location added successfully"
+msgstr ""
+
+msgid "Location added to favorites"
+msgstr ""
+
+msgid "Location already exists"
+msgstr ""
+
+msgid "Location already in favorites"
+msgstr ""
+
+#, fuzzy
+msgid "Location deleted"
+msgstr "Вибір місця розташування"
+
+msgid "Location with similar coordinates already exists"
+msgstr ""
 
 msgid "MSN weather"
 msgstr "Погода MSN"
 
+msgid "Manage Favorites"
+msgstr ""
+
+msgid "Menu"
+msgstr ""
+
 msgid "Metric unit for wind speed"
+msgstr ""
+
+msgid "More Details / Smaller font"
+msgstr ""
+
+msgid "N/A"
+msgstr ""
+
+msgid "Next favorite"
+msgstr ""
+
+msgid "No data"
+msgstr ""
+
+msgid "No locations found"
 msgstr ""
 
 msgid "North"
@@ -102,17 +237,28 @@ msgstr "Погода Open-Meteo"
 msgid "OpenWeatherMap"
 msgstr "OpenWeatherMap"
 
+#, fuzzy
+msgid "Please enter a valid city name."
+msgstr "Назва міста MetrixWeather"
+
+msgid "Please enter at least 3 characters"
+msgstr ""
+
 msgid "Precipitation"
+msgstr ""
+
+msgid "Previous favorite"
 msgstr ""
 
 msgid "Refresh interval"
 msgstr "Інтервал оновлення"
 
-msgid "Search for City ID please wait..."
-msgstr "Пошук ID міста, будь ласка, зачекайте..."
+#, fuzzy
+msgid "Refresh interval :"
+msgstr "Інтервал оновлення"
 
-msgid "Search for your City"
-msgstr "Знайти своє місто"
+msgid "Save"
+msgstr ""
 
 #, fuzzy
 msgid "Select 'Yes' to enable add debug output to log."
@@ -122,8 +268,15 @@ msgstr "Виберіть 'Так', щоб увімкнути MetrixWeather на 
 msgid "Select 'Yes' to enable the addition of Weather."
 msgstr "Виберіть 'Так', щоб увімкнути MetrixWeather на екран Інфопанелі."
 
-msgid "Select Your Location"
+#, fuzzy
+msgid "Select location"
 msgstr "Виберіть своє місцезнаходження"
+
+msgid "Select the City and Press Ok"
+msgstr ""
+
+msgid "Select the detail level in the detail view. You have the choice between a comprehensive presentation in a smaller font and a reduced presentation with a larger font."
+msgstr ""
 
 msgid "Select the metric unit for wind speed to be used for wind displays. This has no effect on the imperial unit 'mph'."
 msgstr ""
@@ -137,10 +290,19 @@ msgstr ""
 msgid "Select this option to save that last obtained weather data locally. This is used to initialize the data immediately after restart while updated data is being fetched."
 msgstr ""
 
-msgid "Set default values"
+msgid "Settings"
+msgstr ""
+
+msgid "Setup"
 msgstr ""
 
 msgid "Show Weather Forecast"
+msgstr ""
+
+msgid "Show trend arrows for moon data"
+msgstr ""
+
+msgid "Show trend arrows for moon illumination and moon distance to see the current trend of the data."
 msgstr ""
 
 msgid "South"
@@ -155,35 +317,52 @@ msgstr ""
 msgid "Specify how often Weather retrieves its data from the server. 'Once' means the data will loaded only once after a GUI or system start."
 msgstr ""
 
+msgid "Standard fertig"
+msgstr ""
+
 msgid "Temperature unit"
 msgstr ""
 
-msgid ""
-"The API key for OpenWeatherMap is not defined or invalid.\n"
-"Please verify your input data.\n"
-"Otherwise your settings won't be saved."
-msgstr ""
-
-msgid "The city name is too short. More than 2 characters are needed for search."
+msgid "Temperature unit :"
 msgstr ""
 
 msgid "Today"
 msgstr ""
 
+msgid "Try refreshing or check settings"
+msgstr ""
+
 msgid "Update"
 msgstr ""
 
-msgid "Weather API key"
+msgid "View details"
+msgstr ""
+
+#, fuzzy
+msgid "Weather API key :"
+msgstr "Ключ API MetrixWeather"
+
+#, fuzzy
+msgid "Weather API key v2.5"
 msgstr "Ключ API MetrixWeather"
 
 #, fuzzy
 msgid "Weather Plugin"
 msgstr "Налаштування погоди"
 
-msgid "Weather Settings Actions"
-msgstr ""
+#, fuzzy
+msgid "Weather Plugin Detailview"
+msgstr "Налаштування погоди"
 
 msgid "Weather city name"
+msgstr "Назва міста MetrixWeather"
+
+#, fuzzy
+msgid "Weather city name :"
+msgstr "Назва міста MetrixWeather"
+
+#, fuzzy
+msgid "Weather data unavailable"
 msgstr "Назва міста MetrixWeather"
 
 #, fuzzy
@@ -191,16 +370,37 @@ msgid "Weather icon night switch"
 msgstr "Шлях до іконок MetrixWeather"
 
 #, fuzzy
+msgid "Weather icon night switch :"
+msgstr "Шлях до іконок MetrixWeather"
+
+#, fuzzy
 msgid "Weather icon set"
 msgstr "Шлях до іконок MetrixWeather"
 
+#, fuzzy
+msgid "Weather icon set :"
+msgstr "Шлях до іконок MetrixWeather"
+
 msgid "Weather service"
+msgstr "Сервіс MetrixWeather"
+
+#, fuzzy
+msgid "Weather service :"
 msgstr "Сервіс MetrixWeather"
 
 msgid "Weather settings"
 msgstr "Налаштування погоди"
 
 msgid "West"
+msgstr ""
+
+msgid "Wind speed metric unit:"
+msgstr ""
+
+msgid "You have unsaved changes. Save before exiting?"
+msgstr ""
+
+msgid "exit"
 msgstr ""
 
 msgid "km/h"
@@ -211,3 +411,16 @@ msgstr ""
 
 msgid "n/a"
 msgstr ""
+
+#, python-format
+#~ msgid "City '%s' not found! Please try another wording."
+#~ msgstr "Місто '%s' не знайдено! Спробуйте інше формулювання."
+
+#~ msgid "Enter the location for your weather forecasts."
+#~ msgstr "Введіть місцевість для прогнозу погоди."
+
+#~ msgid "Search for City ID please wait..."
+#~ msgstr "Пошук ID міста, будь ласка, зачекайте..."
+
+#~ msgid "Search for your City"
+#~ msgstr "Знайти своє місто"

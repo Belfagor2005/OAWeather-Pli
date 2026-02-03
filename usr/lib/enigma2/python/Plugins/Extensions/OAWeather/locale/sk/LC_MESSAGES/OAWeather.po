@@ -14,11 +14,19 @@ msgstr ""
 "X-Generator: Weblate 4.14.2-dev\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-#, python-format
 msgid "%d Minutes"
 msgstr ""
 
+msgid "Add"
+msgstr ""
+
+msgid "Add Fav"
+msgstr ""
+
 msgid "Cache data"
+msgstr ""
+
+msgid "Cache data :"
 msgstr ""
 
 msgid "Celsius"
@@ -30,11 +38,19 @@ msgstr ""
 msgid "Choose whether the 'night switch' should be activated or not. Some icons are then displayed as night icons with moon."
 msgstr ""
 
-#, python-format
-msgid "City '%s' not found! Please try another wording."
+msgid "Chose favorite"
+msgstr ""
+
+msgid "City name must be at least 3 characters"
+msgstr ""
+
+msgid "Coordinates not available for this location"
 msgstr ""
 
 msgid "Current Weather"
+msgstr ""
+
+msgid "Day +/-"
 msgstr ""
 
 #, fuzzy
@@ -44,47 +60,157 @@ msgstr "Východzie"
 msgid "Defaults"
 msgstr "Východzie"
 
+msgid "Delete"
+msgstr ""
+
+msgid "Delete failed"
+msgstr ""
+
+msgid "Delete {}?"
+msgstr ""
+
+msgid "Detail level in detail view"
+msgstr ""
+
+msgid "Details +/-"
+msgstr ""
+
 msgid "Disabled"
 msgstr ""
 
 msgid "East"
 msgstr ""
 
+msgid "Edit"
+msgstr ""
+
+msgid "Edit city name"
+msgstr ""
+
 #, fuzzy
 msgid "Enable Debug"
+msgstr "Povolené"
+
+#, fuzzy
+msgid "Enable Debug :"
 msgstr "Povolené"
 
 msgid "Enabled"
 msgstr "Povolené"
 
-msgid "Enter a personalized API key for use with OpenWeatherMap (https://openweathermap.org/)."
+#, fuzzy
+msgid "Enabled :"
+msgstr "Povolené"
+
+msgid "Enter a personalized API key v2.5 for use with OpenWeatherMap (https://openweathermap.org/)."
 msgstr ""
 
-msgid "Enter the location for your weather forecasts."
+msgid "Enter city name (e.g. 'Rome, IT')"
 msgstr ""
 
-msgid "Error getting City ID"
+msgid "Enter the location for your weather forecasts. To include your location, expand your favorites list with 'Manage your favorites'."
 msgstr ""
 
-msgid "Error in Weatherinfo"
+msgid "Error adding location"
+msgstr ""
+
+msgid "Error changing day"
+msgstr ""
+
+msgid "Error processing location data"
+msgstr ""
+
+msgid "Error saving favorites"
+msgstr ""
+
+msgid "Error saving location"
+msgstr ""
+
+msgid "Error selecting location"
+msgstr ""
+
+msgid "Error updating list"
+msgstr ""
+
+msgid "Exit"
 msgstr ""
 
 msgid "Fahrenheit"
 msgstr "Stupne Fahrenheita"
 
+msgid "Favorites saved successfully"
+msgstr ""
+
 msgid "Feels like"
+msgstr ""
+
+msgid "GREEN: MANAGEMENT FAVORITES | MENU: SETUP | INFO: DETAILS | HOME"
+msgstr ""
+
+msgid "Glass"
 msgstr ""
 
 msgid "Humidity"
 msgstr ""
 
-msgid "Location Selection"
+msgid "Invalid location coordinates"
+msgstr ""
+
+msgid "Invalid location format"
+msgstr ""
+
+msgid "Invalid selection"
+msgstr ""
+
+msgid "Less details / Larger font"
+msgstr ""
+
+msgid "Loading weather data..."
+msgstr ""
+
+msgid "Location added successfully"
+msgstr ""
+
+msgid "Location added to favorites"
+msgstr ""
+
+msgid "Location already exists"
+msgstr ""
+
+msgid "Location already in favorites"
+msgstr ""
+
+msgid "Location deleted"
+msgstr ""
+
+msgid "Location with similar coordinates already exists"
 msgstr ""
 
 msgid "MSN weather"
 msgstr ""
 
+msgid "Manage Favorites"
+msgstr ""
+
+msgid "Menu"
+msgstr ""
+
 msgid "Metric unit for wind speed"
+msgstr ""
+
+msgid "More Details / Smaller font"
+msgstr ""
+
+msgid "N/A"
+msgstr ""
+
+msgid "Next favorite"
+msgstr ""
+
+msgid "No data"
+msgstr ""
+
+msgid "No locations found"
 msgstr ""
 
 msgid "North"
@@ -102,16 +228,25 @@ msgstr ""
 msgid "OpenWeatherMap"
 msgstr ""
 
+msgid "Please enter a valid city name."
+msgstr ""
+
+msgid "Please enter at least 3 characters"
+msgstr ""
+
 msgid "Precipitation"
+msgstr ""
+
+msgid "Previous favorite"
 msgstr ""
 
 msgid "Refresh interval"
 msgstr ""
 
-msgid "Search for City ID please wait..."
+msgid "Refresh interval :"
 msgstr ""
 
-msgid "Search for your City"
+msgid "Save"
 msgstr ""
 
 msgid "Select 'Yes' to enable add debug output to log."
@@ -120,8 +255,15 @@ msgstr ""
 msgid "Select 'Yes' to enable the addition of Weather."
 msgstr ""
 
-msgid "Select Your Location"
+#, fuzzy
+msgid "Select location"
 msgstr "Vyberte Vaše umiestnenie"
+
+msgid "Select the City and Press Ok"
+msgstr ""
+
+msgid "Select the detail level in the detail view. You have the choice between a comprehensive presentation in a smaller font and a reduced presentation with a larger font."
+msgstr ""
 
 msgid "Select the metric unit for wind speed to be used for wind displays. This has no effect on the imperial unit 'mph'."
 msgstr ""
@@ -135,10 +277,19 @@ msgstr ""
 msgid "Select this option to save that last obtained weather data locally. This is used to initialize the data immediately after restart while updated data is being fetched."
 msgstr ""
 
-msgid "Set default values"
+msgid "Settings"
+msgstr ""
+
+msgid "Setup"
 msgstr ""
 
 msgid "Show Weather Forecast"
+msgstr ""
+
+msgid "Show trend arrows for moon data"
+msgstr ""
+
+msgid "Show trend arrows for moon illumination and moon distance to see the current trend of the data."
 msgstr ""
 
 msgid "South"
@@ -154,51 +305,87 @@ msgstr ""
 msgid "Specify how often Weather retrieves its data from the server. 'Once' means the data will loaded only once after a GUI or system start."
 msgstr "Určete, jak často MetrixWeather načítá data ze serveru. 'Jednou' znamená, že se data načtou pouze jednou po spuštění grafického uživatelského rozhraní nebo systému."
 
+msgid "Standard fertig"
+msgstr ""
+
 msgid "Temperature unit"
 msgstr ""
 
-msgid ""
-"The API key for OpenWeatherMap is not defined or invalid.\n"
-"Please verify your input data.\n"
-"Otherwise your settings won't be saved."
-msgstr ""
-
-msgid "The city name is too short. More than 2 characters are needed for search."
+msgid "Temperature unit :"
 msgstr ""
 
 msgid "Today"
 msgstr ""
 
+msgid "Try refreshing or check settings"
+msgstr ""
+
 msgid "Update"
 msgstr ""
 
-msgid "Weather API key"
+msgid "View details"
+msgstr ""
+
+#, fuzzy
+msgid "Weather API key :"
+msgstr "Nastavenia počasia"
+
+msgid "Weather API key v2.5"
 msgstr ""
 
 #, fuzzy
 msgid "Weather Plugin"
 msgstr "Nastavenia počasia"
 
-msgid "Weather Settings Actions"
-msgstr ""
+#, fuzzy
+msgid "Weather Plugin Detailview"
+msgstr "Nastavenia počasia"
 
 msgid "Weather city name"
+msgstr ""
+
+#, fuzzy
+msgid "Weather city name :"
+msgstr "Nastavenia počasia"
+
+msgid "Weather data unavailable"
 msgstr ""
 
 msgid "Weather icon night switch"
 msgstr ""
 
 #, fuzzy
+msgid "Weather icon night switch :"
+msgstr "Nastavenia počasia"
+
+#, fuzzy
 msgid "Weather icon set"
+msgstr "Nastavenia počasia"
+
+#, fuzzy
+msgid "Weather icon set :"
 msgstr "Nastavenia počasia"
 
 msgid "Weather service"
 msgstr ""
 
+#, fuzzy
+msgid "Weather service :"
+msgstr "Nastavenia počasia"
+
 msgid "Weather settings"
 msgstr "Nastavenia počasia"
 
 msgid "West"
+msgstr ""
+
+msgid "Wind speed metric unit:"
+msgstr ""
+
+msgid "You have unsaved changes. Save before exiting?"
+msgstr ""
+
+msgid "exit"
 msgstr ""
 
 msgid "km/h"

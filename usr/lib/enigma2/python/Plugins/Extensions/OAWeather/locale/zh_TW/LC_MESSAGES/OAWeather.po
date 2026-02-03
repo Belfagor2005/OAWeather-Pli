@@ -1,0 +1,384 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: enigma 2\n"
+"PO-Revision-Date: 2026-02-03 13:17+0000\n"
+"Last-Translator:  <EMAIL@ADDRESS>\n"
+"Language-Team: Language zh-TW\n"
+"Language: zh-TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the OAWeather package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid "%d Minutes"
+msgstr ""
+
+msgid "Add"
+msgstr ""
+
+msgid "Add Fav"
+msgstr ""
+
+msgid "Cache data"
+msgstr ""
+
+msgid "Cache data :"
+msgstr ""
+
+msgid "Celsius"
+msgstr ""
+
+msgid "Choose the icon set. You need to create an additional set here: /usr/share/enigma2/WeatherIconSets/NAME."
+msgstr ""
+
+msgid "Choose whether the 'night switch' should be activated or not. Some icons are then displayed as night icons with moon."
+msgstr ""
+
+msgid "Chose favorite"
+msgstr ""
+
+msgid "City name must be at least 3 characters"
+msgstr ""
+
+msgid "Coordinates not available for this location"
+msgstr ""
+
+msgid "Current Weather"
+msgstr ""
+
+msgid "Day +/-"
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+msgid "Defaults"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Delete failed"
+msgstr ""
+
+msgid "Delete {}?"
+msgstr ""
+
+msgid "Detail level in detail view"
+msgstr ""
+
+msgid "Details +/-"
+msgstr ""
+
+msgid "Disabled"
+msgstr ""
+
+msgid "East"
+msgstr ""
+
+msgid "Edit"
+msgstr ""
+
+msgid "Edit city name"
+msgstr ""
+
+msgid "Enable Debug"
+msgstr ""
+
+msgid "Enable Debug :"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "Enabled :"
+msgstr ""
+
+msgid "Enter a personalized API key v2.5 for use with OpenWeatherMap (https://openweathermap.org/)."
+msgstr ""
+
+msgid "Enter city name (e.g. 'Rome, IT')"
+msgstr ""
+
+msgid "Enter the location for your weather forecasts. To include your location, expand your favorites list with 'Manage your favorites'."
+msgstr ""
+
+msgid "Error adding location"
+msgstr ""
+
+msgid "Error changing day"
+msgstr ""
+
+msgid "Error processing location data"
+msgstr ""
+
+msgid "Error saving favorites"
+msgstr ""
+
+msgid "Error saving location"
+msgstr ""
+
+msgid "Error selecting location"
+msgstr ""
+
+msgid "Error updating list"
+msgstr ""
+
+msgid "Exit"
+msgstr ""
+
+msgid "Fahrenheit"
+msgstr ""
+
+msgid "Favorites saved successfully"
+msgstr ""
+
+msgid "Feels like"
+msgstr ""
+
+msgid "GREEN: MANAGEMENT FAVORITES | MENU: SETUP | INFO: DETAILS | HOME"
+msgstr ""
+
+msgid "Glass"
+msgstr ""
+
+msgid "Humidity"
+msgstr ""
+
+msgid "Invalid location coordinates"
+msgstr ""
+
+msgid "Invalid location format"
+msgstr ""
+
+msgid "Invalid selection"
+msgstr ""
+
+msgid "Less details / Larger font"
+msgstr ""
+
+msgid "Loading weather data..."
+msgstr ""
+
+msgid "Location added successfully"
+msgstr ""
+
+msgid "Location added to favorites"
+msgstr ""
+
+msgid "Location already exists"
+msgstr ""
+
+msgid "Location already in favorites"
+msgstr ""
+
+msgid "Location deleted"
+msgstr ""
+
+msgid "Location with similar coordinates already exists"
+msgstr ""
+
+msgid "MSN weather"
+msgstr ""
+
+msgid "Manage Favorites"
+msgstr ""
+
+msgid "Menu"
+msgstr ""
+
+msgid "Metric unit for wind speed"
+msgstr ""
+
+msgid "More Details / Smaller font"
+msgstr ""
+
+msgid "N/A"
+msgstr ""
+
+msgid "Next favorite"
+msgstr ""
+
+msgid "No data"
+msgstr ""
+
+msgid "No locations found"
+msgstr ""
+
+msgid "North"
+msgstr ""
+
+msgid "Northeast"
+msgstr ""
+
+msgid "Northwest"
+msgstr ""
+
+msgid "Open-Meteo Wetter"
+msgstr ""
+
+msgid "OpenWeatherMap"
+msgstr ""
+
+msgid "Please enter a valid city name."
+msgstr ""
+
+msgid "Please enter at least 3 characters"
+msgstr ""
+
+msgid "Precipitation"
+msgstr ""
+
+msgid "Previous favorite"
+msgstr ""
+
+msgid "Refresh interval"
+msgstr ""
+
+msgid "Refresh interval :"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Select 'Yes' to enable add debug output to log."
+msgstr ""
+
+msgid "Select 'Yes' to enable the addition of Weather."
+msgstr ""
+
+msgid "Select location"
+msgstr ""
+
+msgid "Select the City and Press Ok"
+msgstr ""
+
+msgid "Select the detail level in the detail view. You have the choice between a comprehensive presentation in a smaller font and a reduced presentation with a larger font."
+msgstr ""
+
+msgid "Select the metric unit for wind speed to be used for wind displays. This has no effect on the imperial unit 'mph'."
+msgstr ""
+
+msgid "Select the preferred weather service to supply the weather information."
+msgstr ""
+
+msgid "Select the temperature unit to be used for temperature displays."
+msgstr ""
+
+msgid "Select this option to save that last obtained weather data locally. This is used to initialize the data immediately after restart while updated data is being fetched."
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Setup"
+msgstr ""
+
+msgid "Show Weather Forecast"
+msgstr ""
+
+msgid "Show trend arrows for moon data"
+msgstr ""
+
+msgid "Show trend arrows for moon illumination and moon distance to see the current trend of the data."
+msgstr ""
+
+msgid "South"
+msgstr ""
+
+msgid "Southeast"
+msgstr ""
+
+msgid "Southwest"
+msgstr ""
+
+msgid "Specify how often Weather retrieves its data from the server. 'Once' means the data will loaded only once after a GUI or system start."
+msgstr ""
+
+msgid "Standard fertig"
+msgstr ""
+
+msgid "Temperature unit"
+msgstr ""
+
+msgid "Temperature unit :"
+msgstr ""
+
+msgid "Today"
+msgstr ""
+
+msgid "Try refreshing or check settings"
+msgstr ""
+
+msgid "Update"
+msgstr ""
+
+msgid "View details"
+msgstr ""
+
+msgid "Weather API key :"
+msgstr ""
+
+msgid "Weather API key v2.5"
+msgstr ""
+
+msgid "Weather Plugin"
+msgstr ""
+
+msgid "Weather Plugin Detailview"
+msgstr ""
+
+msgid "Weather city name"
+msgstr ""
+
+msgid "Weather city name :"
+msgstr ""
+
+msgid "Weather data unavailable"
+msgstr ""
+
+msgid "Weather icon night switch"
+msgstr ""
+
+msgid "Weather icon night switch :"
+msgstr ""
+
+msgid "Weather icon set"
+msgstr ""
+
+msgid "Weather icon set :"
+msgstr ""
+
+msgid "Weather service"
+msgstr ""
+
+msgid "Weather service :"
+msgstr ""
+
+msgid "Weather settings"
+msgstr ""
+
+msgid "West"
+msgstr ""
+
+msgid "Wind speed metric unit:"
+msgstr ""
+
+msgid "You have unsaved changes. Save before exiting?"
+msgstr ""
+
+msgid "exit"
+msgstr ""
+
+msgid "km/h"
+msgstr ""
+
+msgid "m/s"
+msgstr ""
+
+msgid "n/a"
+msgstr ""
